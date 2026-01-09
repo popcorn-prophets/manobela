@@ -1,0 +1,13 @@
+node_modules
+
+.expo
+.expo-shared
+build
+dist
+
+ios
+android
+
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
