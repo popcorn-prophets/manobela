@@ -4,7 +4,12 @@
     "editorconfig.editorconfig",
     "streetsidesoftware.code-spell-checker",
     "eamodio.gitlens",
-    "mhutchie.git-graph"
+    "mhutchie.git-graph",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "msjsdiag.vscode-react-native",
+    "dbaeumer.vscode-eslint"
   ],
   "unwantedRecommendations": []
 }
