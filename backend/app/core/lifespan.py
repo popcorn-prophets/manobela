@@ -3,22 +3,27 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.services.face_landmarker import FaceLandmarker
+from app.core.dependencies import app_state
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Manage application lifecycle: startup and shutdown.
+    """
     logger.info("Starting application")
 
     # Startup
-    FaceLandmarker.initialize()
+    # Initialize all application-scoped dependencies
+    app_state.initialize()
 
     try:
         yield
     finally:
         # Shutdown
         logger.info("Shutting down application...")
-        FaceLandmarker.shutdown()
+        # Clean up all application-scoped dependencies
+        app_state.shutdown()
         logger.info("Shutdown complete")

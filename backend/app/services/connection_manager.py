@@ -77,7 +77,3 @@ class ConnectionManager:
                 await ws.send_json(message)
             except Exception as e:
                 logger.error("Failed to broadcast to %s: %s", client_id, e)
-
-
-# Shared singleton used across the application
-manager = ConnectionManager()

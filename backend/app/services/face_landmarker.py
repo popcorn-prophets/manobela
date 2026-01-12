@@ -13,19 +13,24 @@ MODEL_PATH = PROJECT_ROOT / "assets" / "models" / "face_landmarker.task"
 
 class FaceLandmarker:
     """
-    Singleton instance of face landmarking model.
-    Must be initialized before use.
+    Face landmarking model wrapper.
     """
 
-    _instance = None
+    def __init__(self, model_path: Path = MODEL_PATH):
+        """
+        Initialize the face landmarker.
 
-    @classmethod
-    def initialize(cls):
-        if cls._instance is not None:
-            return cls._instance
+        Args:
+            model_path: Path to the MediaPipe face landmarker model file.
+        """
+        self.model_path = model_path
+        self._landmarker = None
+        self._initialize()
 
+    def _initialize(self) -> None:
+        """Initialize the MediaPipe face landmarker."""
         try:
-            base_options = python.BaseOptions(model_asset_path=str(MODEL_PATH))
+            base_options = python.BaseOptions(model_asset_path=str(self.model_path))
 
             options = vision.FaceLandmarkerOptions(
                 base_options=base_options,
@@ -36,24 +41,29 @@ class FaceLandmarker:
                 min_tracking_confidence=0.5,
             )
 
-            cls._instance = vision.FaceLandmarker.create_from_options(options)
-
+            self._landmarker = vision.FaceLandmarker.create_from_options(options)
             logger.info("Face Landmarker initialized successfully")
-
-            return cls._instance
 
         except Exception as e:
             logger.error(f"Failed to initialize Face Landmarker: {e}")
-            cls._instance = None
             raise RuntimeError("Face Landmarker initialization failed") from e
 
-    @classmethod
-    def get(cls):
-        if cls._instance is None:
-            raise RuntimeError("Face Landmarker not initialized")
-        return cls._instance
+    def close(self) -> None:
+        """Clean up resources."""
+        self._landmarker = None
+        logger.info("Face Landmarker closed")
 
-    @classmethod
-    def shutdown(cls) -> None:
-        cls._instance = None
-        logger.info("Face Landmarker has been shut down")
+    def detect_for_video(self, image, timestamp_ms: int):
+        """
+        Detect facial landmarks in a video frame.
+
+        Args:
+            image: MediaPipe image object.
+            timestamp_ms: Timestamp in milliseconds.
+
+        Returns:
+            Detection result containing face landmarks.
+        """
+        if self._landmarker is None:
+            raise RuntimeError("Face Landmarker not initialized")
+        return self._landmarker.detect_for_video(image, timestamp_ms)
