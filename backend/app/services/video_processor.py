@@ -7,8 +7,7 @@ import cv2
 import mediapipe as mp
 
 from app.models.inference import InferenceData, Resolution
-from app.services.connection_manager import manager
-from app.services.face_landmarker import FaceLandmarker
+from app.services.connection_manager import ConnectionManager
 from app.services.face_landmarks import ESSENTIAL_LANDMARKS
 from app.services.smoother import Smoother
 
@@ -21,7 +20,10 @@ RENDER_LANDMARKS_FULL = False  # Option to render all landmarks or only essentia
 
 
 def process_video_frame(
-    timestamp: str, img_bgr, face_landmarker, smoother: Smoother
+    timestamp: str,
+    img_bgr,
+    face_landmarker,
+    smoother: Smoother,
 ) -> InferenceData:
     """
     Process a single video frame.
@@ -66,23 +68,20 @@ def process_video_frame(
     )
 
 
-async def process_video_frames(client_id: str, track):
+async def process_video_frames(
+    client_id: str,
+    track,
+    face_landmarker,
+    connection_manager: ConnectionManager,
+) -> None:
     """
     Receive video frames from a WebRTC track, perform processing,
     and stream results back over the data channel.
     """
-
     frame_count = 0
     skipped_frames = 0
     last_process_time = 0
     smoother = Smoother()
-
-    # Get the face landmarker singleton
-    try:
-        face_landmarker = FaceLandmarker.get()
-    except RuntimeError as e:
-        logger.error("Face landmarker not available for %s: %s", client_id, e)
-        return
 
     try:
         while True:
@@ -116,7 +115,7 @@ async def process_video_frames(client_id: str, track):
                 result = process_video_frame(timestamp, img, face_landmarker, smoother)
 
                 # Send result
-                channel = manager.data_channels.get(client_id)
+                channel = connection_manager.data_channels.get(client_id)
                 if channel and channel.readyState == "open":
                     channel.send(result.model_dump_json())
                 else:

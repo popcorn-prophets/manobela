@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 
@@ -10,13 +12,17 @@ from aiortc import (
 from aiortc.sdp import candidate_from_sdp
 
 from app.models.webrtc import ICECandidateMessage, MessageType, SDPMessage
-from app.services.connection_manager import manager
-from app.services.video_precessor import process_video_frames
+from app.services.connection_manager import ConnectionManager
+from app.services.video_processor import process_video_frames
 
 logger = logging.getLogger(__name__)
 
 
-async def create_peer_connection(client_id: str) -> RTCPeerConnection:
+async def create_peer_connection(
+    client_id: str,
+    connection_manager: ConnectionManager,
+    face_landmarker,
+) -> RTCPeerConnection:
     """
     Initialize a WebRTC peer connection and wire up all event handlers.
     """
@@ -27,8 +33,7 @@ async def create_peer_connection(client_id: str) -> RTCPeerConnection:
     )
 
     pc = RTCPeerConnection(rtc_config)
-
-    manager.peer_connections[client_id] = pc
+    connection_manager.peer_connections[client_id] = pc
 
     @pc.on("connectionstatechange")
     async def on_connectionstatechange():
@@ -37,7 +42,7 @@ async def create_peer_connection(client_id: str) -> RTCPeerConnection:
 
         # Close peer connection if it's in a failed or closed state
         if pc.connectionState in ["failed", "closed", "disconnected"]:
-            removed_pc = manager.disconnect(client_id)
+            removed_pc = connection_manager.disconnect(client_id)
             if removed_pc:
                 await removed_pc.close()
 
@@ -47,15 +52,20 @@ async def create_peer_connection(client_id: str) -> RTCPeerConnection:
 
         if track.kind == "video":
             # Start processing video frames in a background task
-            task = asyncio.create_task(process_video_frames(client_id, track))
-            manager.frame_tasks[client_id] = task
+            # Pass dependencies explicitly
+            task = asyncio.create_task(
+                process_video_frames(
+                    client_id, track, face_landmarker, connection_manager
+                )
+            )
+            connection_manager.frame_tasks[client_id] = task
 
     @pc.on("datachannel")
     def on_datachannel(channel):
         logger.info("Data channel established: %s", channel.label)
 
         # Register the channel
-        manager.data_channels[client_id] = channel
+        connection_manager.data_channels[client_id] = channel
 
         @channel.on("message")
         def on_message(message):
@@ -65,7 +75,7 @@ async def create_peer_connection(client_id: str) -> RTCPeerConnection:
     async def on_icecandidate(candidate):
         # Forward local ICE candidates to the client
         if candidate:
-            await manager.send_message(
+            await connection_manager.send_message(
                 client_id,
                 {
                     "type": MessageType.ICE_CANDIDATE.value,
@@ -80,7 +90,12 @@ async def create_peer_connection(client_id: str) -> RTCPeerConnection:
     return pc
 
 
-async def handle_offer(client_id: str, message: dict):
+async def handle_offer(
+    client_id: str,
+    message: dict,
+    connection_manager: ConnectionManager,
+    face_landmarker,
+) -> None:
     """
     Handle an incoming SDP offer from a client and send back an answer.
     """
@@ -88,7 +103,9 @@ async def handle_offer(client_id: str, message: dict):
         # Parse and validate message
         offer_msg = SDPMessage(**message)
 
-        pc = await create_peer_connection(client_id)
+        pc = await create_peer_connection(
+            client_id, connection_manager, face_landmarker
+        )
 
         offer = RTCSessionDescription(sdp=offer_msg.sdp, type=offer_msg.sdpType)
         await pc.setRemoteDescription(offer)
@@ -103,7 +120,7 @@ async def handle_offer(client_id: str, message: dict):
             "m=video" in answer.sdp,
         )
 
-        await manager.send_message(
+        await connection_manager.send_message(
             client_id,
             {
                 "type": MessageType.ANSWER.value,
@@ -114,19 +131,23 @@ async def handle_offer(client_id: str, message: dict):
 
     except Exception as e:
         logger.error("Error handling offer from %s: %s", client_id, e)
-        await manager.send_message(
+        await connection_manager.send_message(
             client_id, {"type": MessageType.ERROR.value, "message": str(e)}
         )
 
 
-async def handle_answer(client_id: str, message: dict):
+async def handle_answer(
+    client_id: str,
+    message: dict,
+    connection_manager: ConnectionManager,
+) -> None:
     """
     Handle an SDP answer from a client.
     """
     try:
         answer_msg = SDPMessage(**message)
 
-        pc = manager.peer_connections.get(client_id)
+        pc = connection_manager.peer_connections.get(client_id)
         if not pc:
             raise RuntimeError("No peer connection found for client")
 
@@ -136,19 +157,23 @@ async def handle_answer(client_id: str, message: dict):
 
     except Exception as e:
         logger.error("Error handling answer from %s: %s", client_id, e)
-        await manager.send_message(
+        await connection_manager.send_message(
             client_id, {"type": MessageType.ERROR.value, "message": str(e)}
         )
 
 
-async def handle_ice_candidate(client_id: str, message: dict):
+async def handle_ice_candidate(
+    client_id: str,
+    message: dict,
+    connection_manager: ConnectionManager,
+) -> None:
     """
     Add a remote ICE candidate to the active peer connection.
     """
     try:
         ice_msg = ICECandidateMessage(**message)
 
-        pc = manager.peer_connections.get(client_id)
+        pc = connection_manager.peer_connections.get(client_id)
         if not pc:
             raise RuntimeError("No peer connection found for client")
 

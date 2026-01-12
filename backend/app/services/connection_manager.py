@@ -19,6 +19,7 @@ class ConnectionManager:
         self.peer_connections: Dict[str, RTCPeerConnection] = {}
         self.data_channels: Dict[str, RTCDataChannel] = {}
         self.frame_tasks: Dict[str, asyncio.Task] = {}
+        logger.info("Connection Manager initialized")
 
     async def connect(self, websocket: WebSocket, client_id: str) -> None:
         """Accept a WebSocket connection and register it."""
@@ -78,6 +79,37 @@ class ConnectionManager:
             except Exception as e:
                 logger.error("Failed to broadcast to %s: %s", client_id, e)
 
+    async def close(self) -> None:
+        """
+        Close all active connections, peer connections, data channels, and cancel tasks.
+        Intended to be called during app shutdown.
+        """
+        logger.info("Shutting down Connection Manager...")
 
-# Shared singleton used across the application
-manager = ConnectionManager()
+        # Cancel all frame processing tasks
+        for client_id, task in list(self.frame_tasks.items()):
+            if task and not task.done():
+                task.cancel()
+                logger.info("Cancelled frame processing task for %s", client_id)
+
+        # Close all RTCPeerConnections
+        for client_id, pc in list(self.peer_connections.items()):
+            if pc:
+                await pc.close()
+                logger.info("Closed RTCPeerConnection for %s", client_id)
+
+        # Close all WebSockets
+        for client_id, ws in list(self.active_connections.items()):
+            try:
+                await ws.close()
+                logger.info("Closed WebSocket for %s", client_id)
+            except Exception as e:
+                logger.warning("Failed to close WebSocket for %s: %s", client_id, e)
+
+        # Clear all internal dictionaries
+        self.active_connections.clear()
+        self.peer_connections.clear()
+        self.data_channels.clear()
+        self.frame_tasks.clear()
+
+        logger.info("Connection Manager shutdown complete")

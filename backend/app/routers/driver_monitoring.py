@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from app.core.dependencies import ConnectionManagerDep, FaceLandmarkerDep
 from app.models.webrtc import MessageType
-from app.services.connection_manager import manager
 from app.services.webrtc_handler import (
     handle_answer,
     handle_ice_candidate,
@@ -19,18 +19,22 @@ router = APIRouter(tags=["driver_monitoring"])
 
 
 @router.websocket("/ws/driver-monitoring")
-async def driver_monitoring(websocket: WebSocket):
+async def driver_monitoring(
+    websocket: WebSocket,
+    connection_manager: ConnectionManagerDep,
+    face_landmarker: FaceLandmarkerDep,
+):
     """
     WebSocket endpoint that handles WebRTC signaling messages for a single client.
     """
 
     # Generate a unique identifier for this client session
     client_id = str(uuid.uuid4())
-    await manager.connect(websocket, client_id)
+    await connection_manager.connect(websocket, client_id)
 
     try:
-        # Initial handshake message so the client knows its assigned I
-        await manager.send_message(
+        # Initial handshake message so the client knows its assigned ID
+        await connection_manager.send_message(
             client_id,
             {
                 "type": MessageType.WELCOME.value,
@@ -53,13 +57,15 @@ async def driver_monitoring(websocket: WebSocket):
 
             # Route signaling messages based on type
             if msg_type == MessageType.OFFER.value:
-                await handle_offer(client_id, message)
+                await handle_offer(
+                    client_id, message, connection_manager, face_landmarker
+                )
 
             elif msg_type == MessageType.ANSWER.value:
-                await handle_answer(client_id, message)
+                await handle_answer(client_id, message, connection_manager)
 
             elif msg_type == MessageType.ICE_CANDIDATE.value:
-                await handle_ice_candidate(client_id, message)
+                await handle_ice_candidate(client_id, message, connection_manager)
 
             else:
                 logger.warning("Unknown message type from %s: %s", client_id, msg_type)
@@ -72,6 +78,6 @@ async def driver_monitoring(websocket: WebSocket):
 
     finally:
         # Ensure peer connection and background tasks are cleaned up
-        pc = manager.disconnect(client_id)
+        pc = connection_manager.disconnect(client_id)
         if pc:
             await pc.close()
