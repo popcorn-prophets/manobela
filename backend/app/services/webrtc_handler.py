@@ -5,7 +5,6 @@ import logging
 
 from aiortc import (
     RTCConfiguration,
-    RTCIceServer,
     RTCPeerConnection,
     RTCSessionDescription,
 )
@@ -13,6 +12,7 @@ from aiortc.sdp import candidate_from_sdp
 
 from app.models.webrtc import ICECandidateMessage, MessageType, SDPMessage
 from app.services.connection_manager import ConnectionManager
+from app.services.ice_servers import get_ice_servers
 from app.services.video_processor import process_video_frames
 
 logger = logging.getLogger(__name__)
@@ -27,14 +27,7 @@ async def create_peer_connection(
     Initialize a WebRTC peer connection and wire up all event handlers.
     """
     rtc_config = RTCConfiguration(
-        iceServers=[
-            RTCIceServer(urls="stun:stun.l.google.com:19302"),
-            RTCIceServer(
-                urls="turn:openrelay.metered.ca:80",
-                username="openrelayproject",
-                credential="openrelayproject",
-            ),
-        ]
+        iceServers=await get_ice_servers(),
     )
 
     pc = RTCPeerConnection(rtc_config)

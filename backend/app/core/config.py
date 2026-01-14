@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     # CORS
     cors_allow_origins: list[str] = ["*"]
 
+    # WebRTC
+    metered_domain: str = ""
+    metered_secret_key: str = ""
+    metered_credentials_api_key: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

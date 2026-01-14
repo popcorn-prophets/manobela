@@ -10,27 +10,7 @@ import { useCallback, useRef, useState } from 'react';
 import { MediaStream, RTCPeerConnection } from 'react-native-webrtc';
 import { WebSocketTransport } from '@/services/signaling/web-socket-transport';
 import RTCDataChannel from 'react-native-webrtc/lib/typescript/RTCDataChannel';
-
-/**
- * Default RTC configuration.
- *
- * - STUN is used for basic NAT traversal.
- * - TURN is required for restrictive networks (e.g. cellular, corporate WiFi).
- *
- * This config is intentionally conservative to maximize connection success.
- */
-const DEFAULT_RTC_CONFIG: RTCConfiguration = {
-  iceServers: [
-    {
-      urls: 'stun:stun.l.google.com:19302',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-  ],
-};
+import { fetchIceServers } from '@/services/ice-servers';
 
 interface UseWebRTCProps {
   // WebSocket signaling endpoint
@@ -65,11 +45,7 @@ interface UseWebRTCReturn {
 /**
  * Manages WebRTC peer connection, signaling, and data channel lifecycle.
  */
-export const useWebRTC = ({
-  url,
-  stream,
-  rtcConfig = DEFAULT_RTC_CONFIG,
-}: UseWebRTCProps): UseWebRTCReturn => {
+export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
   // Assigned by signaling server on WELCOME
   const [clientId, setClientId] = useState<string | null>(null);
 
@@ -229,52 +205,55 @@ export const useWebRTC = ({
   /**
    * Constructs and wires a new RTCPeerConnection instance.
    */
-  const initPeerConnection = useCallback((): RTCPeerConnection => {
-    const pc = new RTCPeerConnection(rtcConfig);
+  const initPeerConnection = useCallback(
+    (rtcConfig: RTCConfiguration): RTCPeerConnection => {
+      const pc = new RTCPeerConnection(rtcConfig);
 
-    // Emit local ICE candidates as they are discovered
-    // @ts-ignore
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log('Generated ICE candidate:', event.candidate.candidate);
-        const msg: ICECandidateMessage = {
-          type: MessageType.ICE_CANDIDATE,
-          candidate: {
-            candidate: event.candidate.toJSON().candidate,
-            sdpMid: event.candidate.sdpMid,
-            sdpMLineIndex: event.candidate.sdpMLineIndex,
-          },
-        };
-        sendSignalingMessage(msg);
-      } else {
-        console.log('ICE gathering complete');
-      }
-    };
+      // Emit local ICE candidates as they are discovered
+      // @ts-ignore
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log('Generated ICE candidate:', event.candidate.candidate);
+          const msg: ICECandidateMessage = {
+            type: MessageType.ICE_CANDIDATE,
+            candidate: {
+              candidate: event.candidate.toJSON().candidate,
+              sdpMid: event.candidate.sdpMid,
+              sdpMLineIndex: event.candidate.sdpMLineIndex,
+            },
+          };
+          sendSignalingMessage(msg);
+        } else {
+          console.log('ICE gathering complete');
+        }
+      };
 
-    // Track high-level connection state
-    // @ts-ignore
-    pc.onconnectionstatechange = () => {
-      console.log('Connection state changed to:', pc.connectionState);
-      setConnectionStatus(pc.connectionState);
+      // Track high-level connection state
+      // @ts-ignore
+      pc.onconnectionstatechange = () => {
+        console.log('Connection state changed to:', pc.connectionState);
+        setConnectionStatus(pc.connectionState);
 
-      if (pc.connectionState === 'failed') {
-        setError('WebRTC connection failed');
-      }
-    };
+        if (pc.connectionState === 'failed') {
+          setError('WebRTC connection failed');
+        }
+      };
 
-    // @ts-ignore
-    pc.oniceconnectionstatechange = () => {
-      console.log('ICE connection state:', pc.iceConnectionState);
-    };
+      // @ts-ignore
+      pc.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', pc.iceConnectionState);
+      };
 
-    // @ts-ignore
-    pc.onicegatheringstatechange = () => {
-      console.log('ICE gathering state:', pc.iceGatheringState);
-    };
+      // @ts-ignore
+      pc.onicegatheringstatechange = () => {
+        console.log('ICE gathering state:', pc.iceGatheringState);
+      };
 
-    pcRef.current = pc;
-    return pc;
-  }, [sendSignalingMessage, rtcConfig]);
+      pcRef.current = pc;
+      return pc;
+    },
+    [sendSignalingMessage]
+  );
 
   /**
    * Main entry point.
@@ -296,8 +275,12 @@ export const useWebRTC = ({
       // Initialize signaling transport first
       await initTransport();
 
+      const rtcConfig: RTCConfiguration = {
+        ...(await fetchIceServers()),
+      };
+
       // Create peer connection
-      const pc = initPeerConnection();
+      const pc = initPeerConnection(rtcConfig);
 
       // Create data channel
       initDataChannel(pc);

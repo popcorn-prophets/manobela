@@ -5,6 +5,7 @@ description = "Backend for Manobela"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "aiohttp[speedups]>=3.13.3",
     "aiortc>=1.14.0",
     "fastapi[standard]>=0.128.0",
     "mediapipe>=0.10.31",
