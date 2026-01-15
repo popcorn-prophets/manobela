@@ -19,7 +19,7 @@ from app.services.smoother import Smoother
 logger = logging.getLogger(__name__)
 
 
-TARGET_FPS = settings.target_fps
+TARGET_FPS = max(1, settings.target_fps)
 TARGET_INTERVAL_SEC = 1 / TARGET_FPS
 MAX_WIDTH = 480
 RENDER_LANDMARKS_FULL = False  # Option to render all landmarks or only essential ones
