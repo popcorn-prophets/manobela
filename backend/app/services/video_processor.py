@@ -1,7 +1,9 @@
 import asyncio
 import functools
 import logging
+import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 import cv2
@@ -19,6 +21,9 @@ logger = logging.getLogger(__name__)
 TARGET_INTERVAL_MS = 66  # ~15 FPS processing target
 MAX_WIDTH = 640
 RENDER_LANDMARKS_FULL = False  # Option to render all landmarks or only essential ones
+
+# Dedicated thread pool for CPU-bound frame processing
+executor = ThreadPoolExecutor(max_workers=min(os.cpu_count() or 4, 4))
 
 
 def process_video_frame(
@@ -140,9 +145,8 @@ async def process_video_frames(
 
                 timestamp = datetime.now(timezone.utc).isoformat()
 
-                loop = asyncio.get_running_loop()
-                result = await loop.run_in_executor(
-                    None,
+                result = await asyncio.get_running_loop().run_in_executor(
+                    executor,
                     functools.partial(
                         process_video_frame,
                         timestamp,
