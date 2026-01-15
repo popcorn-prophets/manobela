@@ -5,7 +5,11 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from app.core.dependencies import ConnectionManagerWsDep, FaceLandmarkerDep
+from app.core.dependencies import (
+    ConnectionManagerDep,
+    ConnectionManagerWsDep,
+    FaceLandmarkerDep,
+)
 from app.models.webrtc import MessageType
 from app.services.webrtc_handler import (
     handle_answer,
@@ -81,3 +85,18 @@ async def driver_monitoring(
         pc = connection_manager.disconnect(client_id)
         if pc:
             await pc.close()
+
+
+@router.get("/connections")
+async def connections(
+    connection_manager: ConnectionManagerDep,
+):
+    """
+    Returns an overview of active driver monitoring sessions and resources.
+    """
+    return {
+        "active_connections": len(connection_manager.active_connections),
+        "peer_connections": len(connection_manager.peer_connections),
+        "data_channels": len(connection_manager.data_channels),
+        "frame_tasks": len(connection_manager.frame_tasks),
+    }
