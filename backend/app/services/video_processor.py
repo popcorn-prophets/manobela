@@ -201,10 +201,11 @@ async def process_video_frames(
                 # Send result
                 try:
                     channel.send(result.model_dump_json())
-                except Exception:
+                except Exception as e:
                     logger.info(
-                        "Data channel send failed for %s; stopping processing",
+                        "Data channel send failed for %s: %s",
                         client_id,
+                        e,
                     )
                     await asyncio.sleep(0.05)
                     continue
