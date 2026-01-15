@@ -5,7 +5,11 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from app.core.dependencies import ConnectionManagerDep, FaceLandmarkerDep
+from app.core.dependencies import (
+    ConnectionManagerDep,
+    FaceLandmarkerDep,
+    ObjectDetectorDep,
+)
 from app.models.webrtc import MessageType
 from app.services.webrtc_handler import (
     handle_answer,
@@ -23,6 +27,7 @@ async def driver_monitoring(
     websocket: WebSocket,
     connection_manager: ConnectionManagerDep,
     face_landmarker: FaceLandmarkerDep,
+    object_detector: ObjectDetectorDep,
 ):
     """
     WebSocket endpoint that handles WebRTC signaling messages for a single client.
@@ -58,7 +63,11 @@ async def driver_monitoring(
             # Route signaling messages based on type
             if msg_type == MessageType.OFFER.value:
                 await handle_offer(
-                    client_id, message, connection_manager, face_landmarker
+                    client_id,
+                    message,
+                    connection_manager,
+                    face_landmarker,
+                    object_detector,
                 )
 
             elif msg_type == MessageType.ANSWER.value:
