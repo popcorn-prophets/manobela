@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import logging
 import time
 from datetime import datetime, timezone
@@ -85,6 +86,7 @@ async def process_video_frames(
     track,
     face_landmarker,
     connection_manager: ConnectionManager,
+    stop_processing: asyncio.Event,
 ) -> None:
     """
     Receive video frames from a WebRTC track, perform processing,
@@ -98,8 +100,20 @@ async def process_video_frames(
 
     try:
         while True:
+            if stop_processing.is_set():
+                logger.info("Stop signal received for %s", client_id)
+                break
+
+            if client_id not in connection_manager.peer_connections:
+                logger.info("Peer connection not found for %s", client_id)
+                break
+
             try:
                 frame = await track.recv()
+                if not frame:
+                    logger.info("Frame is empty for %s", client_id)
+                    break
+
                 frame_count += 1
                 current_time = time.time() * 1000  # ms
 
@@ -125,16 +139,37 @@ async def process_video_frames(
                     )
 
                 timestamp = datetime.now(timezone.utc).isoformat()
-                result = process_video_frame(
-                    timestamp, img, face_landmarker, metric_manager, smoother
+
+                loop = asyncio.get_running_loop()
+                result = await loop.run_in_executor(
+                    None,
+                    functools.partial(
+                        process_video_frame,
+                        timestamp,
+                        img,
+                        face_landmarker,
+                        metric_manager,
+                        smoother,
+                    ),
                 )
 
                 # Send result
                 channel = connection_manager.data_channels.get(client_id)
-                if channel and channel.readyState == "open":
+                if not channel or channel.readyState != "open":
+                    logger.info(
+                        "Data channel closed for %s; stopping frame processing",
+                        client_id,
+                    )
+                    break
+
+                try:
                     channel.send(result.model_dump_json())
-                else:
-                    logger.warning("Data channel not ready for %s", client_id)
+                except Exception:
+                    logger.info(
+                        "Data channel send failed for %s; stopping processing",
+                        client_id,
+                    )
+                    break
 
                 # Periodic logging of processing stats
                 if frame_count % 100 == 0:
@@ -149,17 +184,19 @@ async def process_video_frames(
 
             except asyncio.CancelledError:
                 logger.info("Frame processing cancelled for %s", client_id)
-                raise
+                raise  # MUST propagate cancellation
 
-            except Exception as e:
-                logger.error("Error processing frame for %s: %s", client_id, e)
+            except Exception:
+                logger.exception("Non-fatal frame processing error for %s", client_id)
+                await asyncio.sleep(0)  # yield control
                 continue
 
     except asyncio.CancelledError:
         logger.info("Frame processing stopped for %s", client_id)
+        return
 
-    except Exception as e:
-        logger.error("Fatal error in frame processing for %s: %s", client_id, e)
+    except Exception:
+        logger.exception("Fatal error in frame processing for %s", client_id)
 
     finally:
         logger.info("Frame processing ended for %s", client_id)

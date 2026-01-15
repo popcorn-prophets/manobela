@@ -33,13 +33,16 @@ async def create_peer_connection(
     pc = RTCPeerConnection(rtc_config)
     connection_manager.peer_connections[client_id] = pc
 
+    stop_processing = asyncio.Event()
+
     @pc.on("connectionstatechange")
     async def on_connectionstatechange():
         # Log connection state changes
         logger.info("Connection state for %s: %s", client_id, pc.connectionState)
 
         # Close peer connection if it's in a failed or closed state
-        if pc.connectionState in ["failed", "closed", "disconnected"]:
+        if pc.connectionState in ("failed", "closed", "disconnected"):
+            stop_processing.set()
             removed_pc = connection_manager.disconnect(client_id)
             if removed_pc:
                 await removed_pc.close()
@@ -53,7 +56,11 @@ async def create_peer_connection(
             # Pass dependencies explicitly
             task = asyncio.create_task(
                 process_video_frames(
-                    client_id, track, face_landmarker, connection_manager
+                    client_id,
+                    track,
+                    face_landmarker,
+                    connection_manager,
+                    stop_processing,
                 )
             )
             connection_manager.frame_tasks[client_id] = task
