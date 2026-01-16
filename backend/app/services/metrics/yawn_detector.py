@@ -81,53 +81,53 @@ class YawnMetric(BaseMetric):
         vertical = _dist(top, bottom)
         return vertical / horizontal
 
-def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    landmarks = frame_data.get("landmarks")
-
-    if not landmarks:
-        # Do NOT reset state on transient landmark dropouts
-        # Preserve yawn progress and active state
+    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        landmarks = frame_data.get("landmarks")
+    
+        if not landmarks:
+            # Do NOT reset state on transient landmark dropouts
+            # Preserve yawn progress and active state
+            return {
+                "mar": None,
+                "yawning": self._yawn_active,
+                "yawn_progress": min(
+                    self._open_counter / self.min_duration_frames,
+                    1.0,
+                ),
+            }
+    
+        mar = self._compute_mar(landmarks)
+        smoothed = self.smoother.update([mar] if mar is not None else None)
+    
+        if smoothed is None:
+            return {
+                "mar": None,
+                "yawning": self._yawn_active,
+                "yawn_progress": min(
+                    self._open_counter / self.min_duration_frames,
+                    1.0,
+                ),
+            }
+    
+        mar_value = smoothed[0]
+    
+        if mar_value > self.mar_threshold:
+            self._open_counter += 1
+        else:
+            self._open_counter = 0
+            self._yawn_active = False
+    
+        if self._open_counter >= self.min_duration_frames:
+            self._yawn_active = True
+    
         return {
-            "mar": None,
+            "mar": mar_value,
             "yawning": self._yawn_active,
             "yawn_progress": min(
                 self._open_counter / self.min_duration_frames,
                 1.0,
             ),
         }
-
-    mar = self._compute_mar(landmarks)
-    smoothed = self.smoother.update([mar] if mar is not None else None)
-
-    if smoothed is None:
-        return {
-            "mar": None,
-            "yawning": self._yawn_active,
-            "yawn_progress": min(
-                self._open_counter / self.min_duration_frames,
-                1.0,
-            ),
-        }
-
-    mar_value = smoothed[0]
-
-    if mar_value > self.mar_threshold:
-        self._open_counter += 1
-    else:
-        self._open_counter = 0
-        self._yawn_active = False
-
-    if self._open_counter >= self.min_duration_frames:
-        self._yawn_active = True
-
-    return {
-        "mar": mar_value,
-        "yawning": self._yawn_active,
-        "yawn_progress": min(
-            self._open_counter / self.min_duration_frames,
-            1.0,
-        ),
-    }
 
 
     def reset(self):
