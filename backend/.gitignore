@@ -1,3 +1,6 @@
+# Virtual environment for exporting models
+export_env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

@@ -8,6 +8,16 @@ class Resolution(BaseModel):
     height: int
 
 
+class ObjectDetection(BaseModel):
+    """
+    Object detection result for a single detected object.
+    """
+
+    bbox: List[float]
+    conf: float
+    class_id: int
+
+
 class InferenceData(BaseModel):
     """
     Data returned per video frame inference.
@@ -25,4 +35,5 @@ class InferenceData(BaseModel):
     timestamp: str
     resolution: Resolution
     face_landmarks: Optional[List[float]] = None
+    object_detections: Optional[List[ObjectDetection]] = None
     metrics: Optional[Dict[str, Any]] = None

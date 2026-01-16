@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from app.services.connection_manager import ConnectionManager
 from app.services.face_landmarker import create_face_landmarker
+from app.services.object_detector import create_object_detector
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,9 @@ async def lifespan(app: FastAPI):
 
     # Create face landmarker
     app.state.face_landmarker = create_face_landmarker()
+
+    # Create object detector
+    app.state.object_detector = create_object_detector()
 
     logger.info("Application started")
 
@@ -52,5 +56,9 @@ async def lifespan(app: FastAPI):
                 logger.error("Error closing FaceLandmarker: %s", e)
             finally:
                 app.state.face_landmarker = None
+
+        # Close object detector
+        if getattr(app.state, "object_detector", None):
+            app.state.object_detector = None
 
         logger.info("Shutdown complete")

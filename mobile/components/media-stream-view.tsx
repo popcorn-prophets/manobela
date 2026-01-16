@@ -5,14 +5,13 @@ import { FacialLandmarkOverlay } from './facial-landmark-overlay';
 import { SessionState } from '@/hooks/useMonitoringSession';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { ObjectDetectionOverlay } from './object-detection-overlay';
+import { InferenceData } from '@/types/inference';
 
 type MediaStreamViewProps = {
   stream: MediaStream | null;
   sessionState: SessionState;
-  inferenceData?: {
-    face_landmarks?: number[] | null;
-    resolution?: { width: number; height: number };
-  };
+  inferenceData?: InferenceData | null;
   style?: object;
   mirror?: boolean;
 };
@@ -33,16 +32,21 @@ export const MediaStreamView = ({
   if (!stream) return null;
 
   const landmarks = inferenceData?.face_landmarks || null;
+  const objectDetections = inferenceData?.object_detections || null;
+
   const videoWidth = inferenceData?.resolution?.width || 480;
   const videoHeight = inferenceData?.resolution?.height || 320;
 
   // Determine whether to show landmarks
-  const shouldShowLandmarks =
+  const showOverlays =
+    inferenceData &&
     showOverlay &&
     sessionState === 'active' &&
-    landmarks != null &&
     viewDimensions.width > 0 &&
     viewDimensions.height > 0;
+
+  const showLandmarks = showOverlays && landmarks != null;
+  const showDetections = showOverlays && objectDetections != null;
 
   return (
     <View
@@ -58,9 +62,20 @@ export const MediaStreamView = ({
         mirror={mirror}
       />
 
-      {shouldShowLandmarks && (
+      {showLandmarks && (
         <FacialLandmarkOverlay
           landmarks={landmarks}
+          videoWidth={videoWidth}
+          videoHeight={videoHeight}
+          viewWidth={viewDimensions.width}
+          viewHeight={viewDimensions.height}
+          mirror={mirror}
+        />
+      )}
+
+      {showDetections && (
+        <ObjectDetectionOverlay
+          detections={objectDetections}
           videoWidth={videoWidth}
           videoHeight={videoHeight}
           viewWidth={viewDimensions.width}

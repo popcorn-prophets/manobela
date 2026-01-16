@@ -1,10 +1,11 @@
 import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { SessionState } from '@/hooks/useMonitoringSession';
+import { InferenceData } from '@/types/inference';
 
 interface InferenceDisplayProps {
   sessionState: SessionState;
-  data: Record<string, any>;
+  data: InferenceData | null;
 }
 
 export const InferenceDisplay = ({ sessionState, data }: InferenceDisplayProps) => {
@@ -14,14 +15,14 @@ export const InferenceDisplay = ({ sessionState, data }: InferenceDisplayProps) 
   if (!data) {
     return (
       <View className="mb-4">
-        <Text className="mb-1 font-semibold">Inference Results:</Text>
+        <Text className="mb-1 font-semibold">Inference Results</Text>
         <Text className="font-mono text-xs">Waiting for data...</Text>
       </View>
     );
   }
 
   // Filter out unnecessary keys
-  const exclude = ['face_landmarks'];
+  const exclude = ['face_landmarks', 'object_detections'];
   const entries = Object.entries(data).filter(([key]) => !exclude.includes(key));
 
   return (

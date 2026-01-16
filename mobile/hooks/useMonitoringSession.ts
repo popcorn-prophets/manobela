@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useWebRTC } from './useWebRTC';
 import { MediaStream } from 'react-native-webrtc';
+import { InferenceData } from '@/types/inference';
 
 export type SessionState = 'idle' | 'starting' | 'active' | 'stopping';
 
@@ -15,7 +16,7 @@ interface UseMonitoringSessionProps {
 interface UseMonitoringSessionReturn {
   sessionState: SessionState;
   // Latest data from the session
-  inferenceData: Record<string, any>;
+  inferenceData: InferenceData | null;
   clientId: string | null;
   transportStatus: string;
   connectionStatus: string;
@@ -48,7 +49,7 @@ export const useMonitoringSession = ({
   const [sessionState, setSessionState] = useState<SessionState>('idle');
 
   // Stores latest data
-  const [inferenceData, setInferenceData] = useState<Record<string, any>>({});
+  const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
 
   // Sync session state with WebRTC connection
   useEffect(() => {
@@ -90,7 +91,7 @@ export const useMonitoringSession = ({
     setSessionState('stopping');
     cleanup();
     setSessionState('idle');
-    setInferenceData({});
+    setInferenceData(null);
   }, [sessionState, cleanup]);
 
   return {

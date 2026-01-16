@@ -16,6 +16,7 @@ from app.models.inference import InferenceData, Resolution
 from app.services.connection_manager import ConnectionManager
 from app.services.face_landmarks import ESSENTIAL_LANDMARKS
 from app.services.metrics.metric_manager import MetricManager
+from app.services.object_detector import ObjectDetector
 from app.services.smoother import Smoother
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,10 @@ logger = logging.getLogger(__name__)
 # MediaPipe FaceLandmarker is NOT thread-safe.
 # Use a global lock to prevent concurrent access.
 face_landmarker_lock = threading.Lock()
+
+# YOLO ONNX model is NOTthread-safe.
+# Use a global lock to prevent concurrent access.
+object_detector_lock = threading.Lock()
 
 TARGET_FPS = max(1, settings.target_fps)
 TARGET_INTERVAL_SEC = 1 / TARGET_FPS
@@ -38,6 +43,7 @@ def process_video_frame(
     timestamp: str,
     img_bgr,
     face_landmarker,
+    object_detector: ObjectDetector,
     metric_manager: MetricManager,
     smoother: Smoother,
 ) -> InferenceData:
@@ -78,8 +84,14 @@ def process_video_frame(
             for coord in (face_landmarks[idx].x, face_landmarks[idx].y)
         ]
 
+    # Detect objects
+    with object_detector_lock:
+        object_detections = object_detector.detect(img_bgr, normalize=True)
+
     # Update metrics
-    frame_data = {"landmarks": raw_landmarks} if raw_landmarks else {}
+    frame_data = {}
+    frame_data["landmarks"] = raw_landmarks
+    frame_data["object_detections"] = object_detections
     metrics = metric_manager.update(frame_data)
 
     # Apply smoothing
@@ -92,6 +104,7 @@ def process_video_frame(
         resolution=Resolution(width=w, height=h),
         metrics=metrics,
         face_landmarks=smoothed_landmarks,
+        object_detections=object_detections,
     )
 
 
@@ -99,6 +112,7 @@ async def process_video_frames(
     client_id: str,
     track,
     face_landmarker,
+    object_detector: ObjectDetector,
     connection_manager: ConnectionManager,
     stop_processing: asyncio.Event,
 ) -> None:
@@ -193,6 +207,7 @@ async def process_video_frames(
                         timestamp,
                         img,
                         face_landmarker,
+                        object_detector,
                         metric_manager,
                         smoother,
                     ),

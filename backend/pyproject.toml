@@ -9,6 +9,7 @@ dependencies = [
     "aiortc>=1.14.0",
     "fastapi[standard]>=0.128.0",
     "mediapipe>=0.10.31",
+    "onnxruntime>=1.23.2",
     "opencv-python-headless>=4.12.0.88",
     "pydantic-extra-types>=2.11.0",
     "pydantic-settings>=2.12.0",
