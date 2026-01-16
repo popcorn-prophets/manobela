@@ -88,7 +88,7 @@ class YawnMetric(BaseMetric):
                 ),
             }
 
-        mar = self._compute_mar(landmarks)
+        mar = _compute_mar(self, landmarks)
         smoothed = self.smoother.update([mar] if mar is not None else None)
 
         if smoothed is None:
