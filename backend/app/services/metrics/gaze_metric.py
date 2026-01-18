@@ -101,7 +101,6 @@ class GazeMetric(BaseMetric):
             return None
 
         # Handle right-eye normalization if needed
-
         left_x = left_y = right_x = right_y = None
         if left_ratio:
             left_x, left_y = left_ratio
