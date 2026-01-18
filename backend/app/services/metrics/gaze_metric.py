@@ -73,6 +73,8 @@ class GazeMetric(BaseMetric):
         )
 
         return {
+            "gaze_x": left_on_road,
+            "gaze_y": right_on_road,
             "gaze_on_road": on_road,
             "gaze_alert": not on_road,
         }
