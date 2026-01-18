@@ -45,9 +45,19 @@ class GazeMetric(BaseMetric):
         self,
         horizontal_range: tuple[float, float] = DEFAULT_HORIZONTAL_RANGE,
         vertical_range: tuple[float, float] = DEFAULT_VERTICAL_RANGE,
+        landmark_indices: Dict[str, tuple[int, ...]] = None,
     ) -> None:
         self.horizontal_range = horizontal_range
         self.vertical_range = vertical_range
+
+        # Ensure required keys exist if custom provided
+        if landmark_indices is not None:
+            missing =[k for k in self.LANDMARK_MAP.keys() if k not in landmark_indices]
+            if missing:
+                raise ValueError(f"Missing landmark indices for: {missing}")
+
+        self.landmarks = dict(landmark_indices) if landmark_indices is not None else dict(self.LANDMARK_MAP)
+
 
     def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Union[float, bool, Dict]]]:
 
@@ -60,20 +70,10 @@ class GazeMetric(BaseMetric):
         if not isinstance(landmarks, list):
             return None
 
-        # Validate against ACTIVE indices (self.landmarks) rather than full map
-        required_max = max(
-            max(self.landmarks["LEFT_EYE_CORNERS"]),
-            max(self.landmarks["RIGHT_EYE_CORNERS"]),
-            max(self.landmarks["LEFT_EYE_LIDS"]),
-            max(self.landmarks["RIGHT_EYE_LIDS"]),
-            max(self.landmarks["LEFT_IRIS"]),
-            max(self.landmarks["RIGHT_IRIS"]),
-        )
-
         if not landmarks:
             logger.debug("No landmarks in frame data")
             return None
-        if len(landmarks) <= required_max:
+        if len(landmarks) <= max(self.LANDMARK_MAP["RIGHT_IRIS"]):
             logger.debug("Insufficient landmarks for gaze computation")
             return None
 
