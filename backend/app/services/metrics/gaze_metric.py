@@ -11,8 +11,10 @@ class GazeMetric(BaseMetric):
     Computes normalized gaze coordinates and detects off-road gaze.
 
     The metric calculates gaze direction based on iris position relative to
-    eye corners and lids. Returns normalized coordinates (0.0-1.0) in eye space
-    where (0.5, 0.5) represents center gaze.
+    eye corners and lids. Returns normalized coordinates (0.0-1.0) where:
+    - (0.0, 0.0) = top-left
+    - (1.0, 1.0) = bottom-right
+    - (0.5, 0.5) = center gaze
 
     Coordinate System:
     - X-axis: 0.0 (left) to 1.0 (right)
