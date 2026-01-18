@@ -107,7 +107,7 @@ class GazeMetric(BaseMetric):
         # Tuple assignment
         left_x, left_y = left_ratio
         right_x, right_y = right_ratio
-        right_x = 1.0 - right_x  # Normalize view of right eye horizontally
+        right_x = self._normalize_right_eye(right_x)  # Normalize view of right eye horizontally
 
         # We treat both eyes independently for on-road detection
         left_on_road = self.horizontal_range[0] <= left_x <= self.horizontal_range[1]
@@ -125,11 +125,11 @@ class GazeMetric(BaseMetric):
         gaze_y = (left_y + right_y) / 2.0
 
         return {
-            "gaze coordinates": {
+            "gaze": {
                 "gaze_x": gaze_x,
                 "gaze_y": gaze_y,
             },
-            "eye_details": { # This is for debugging purposes
+            "eye": { # This is for debugging purposes
                 "left_eye": {"x": left_x, "y": left_y, "on_road": left_on_road},
                 "right_eye": {"x": right_x, "y": right_y, "on_road": right_on_road},
             },
