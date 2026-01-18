@@ -95,3 +95,13 @@ python run.py
 cd mobile
 pnpm android  # or `pnpm ios`
 ```
+If you get 
+```bash
+could not connect to TCP port 5554: cannot connect to 127.0.0.1:5554: No connection could be made because the target machine actively refused it.
+```
+```powershell
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" kill-server
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" start-server
+```
+
+Then try starting again.
