@@ -71,18 +71,24 @@ class GazeMetric(BaseMetric):
         left_on_road = self.horizontal_range[0] <= left_x <= self.horizontal_range[1]
         right_on_road = self.horizontal_range[0] <= right_x <= self.horizontal_range[1]
 
-        gaze_on_road = left_on_road and right_on_road
 
-        on_road = (
-            self.horizontal_range[0] <= left_on_road <= self.horizontal_range[1]
-            and self.vertical_range[0] <= right_on_road <= self.vertical_range[1]
+
+        vertical_on_road = (
+            self.vertical_range[0] <= left_y <= self.vertical_range[1]
+            and self.vertical_range[0] <= right_y <= self.vertical_range[1]
         )
+        gaze_on_road = left_on_road and right_on_road and vertical_on_road
+
+        # Average gaze for debugging pruposes
+
+        gaze_x =(left_x + right_x) / 2.0
+        gaze_y = (left_y + right_y) / 2.0
 
         return {
             "gaze_x": left_on_road,
             "gaze_y": right_on_road,
-            "gaze_on_road": on_road,
-            "gaze_alert": not on_road,
+            "gaze_on_road": gaze_on_road,
+            "gaze_alert": not gaze_on_road,
         }
 
     def reset(self) -> None:
