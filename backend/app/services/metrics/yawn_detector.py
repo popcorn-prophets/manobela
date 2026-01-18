@@ -52,6 +52,11 @@ class YawnMetric(BaseMetric):
             raise ValueError("min_duration_frames must be positive.")
         if not 0 <= smoothing_alpha <= 1:
             raise ValueError(f"smoothing_alpha must be between 0 and 1, got {smoothing_alpha}")
+        if self.mar_close_threshold >= self.mar_threshold:
+            raise ValueError(
+                f"mar_close_threshold {self.mar_close_threshold} must be"
+                f"less than mar_threshold {self.mar_threshold} for hysteresis to work."
+            )
 
 
 
