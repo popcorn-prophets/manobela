@@ -43,6 +43,8 @@ class YawnMetric(BaseMetric):
             mar_threshold: MAR value above which mouth is considered open.
             min_duration_frames: Frames MAR must stay high to count as yawn.
             smoothing_alpha: EMA smoothing for MAR.
+            hysteresis_ratio: Ratio of close_threshold to open_threshold (0.0-1.0)
+                Default 0.9 means close_threshold = 0.9 * open_threshold
         """
         if mar_threshold <= 0:
             raise ValueError("mar_threshold must be positive.")
@@ -61,7 +63,10 @@ class YawnMetric(BaseMetric):
         if mar_close_threshold is not None and mar_close_threshold >= mar_threshold: # validation for the relationship between thresholds
             raise ValueError("mar_close_threshold must be less than mar_threshold")
 
-        self.mar_close_threshold = (
+
+        # Default to 10% hysteresis buffer (close threshold = 90% of open threshold)
+        # This creates a buffer zone that prevents rapid state toggling near thresholds
+        self.mar_close_threshold = ( # TODO: Maybe change with hysteresis ratio
             mar_close_threshold
             if mar_close_threshold is not None
             else mar_threshold * 0.9
