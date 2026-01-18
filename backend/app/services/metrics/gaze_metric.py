@@ -136,7 +136,6 @@ class GazeMetric(BaseMetric):
 
     @staticmethod
     def _eye_gaze_ratio(
-        self,
         landmarks: List[tuple[float, float]],
         corners: Tuple[int, int],
         lids: Tuple[int, int],
