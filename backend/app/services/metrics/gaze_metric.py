@@ -168,3 +168,7 @@ class GazeMetric(BaseMetric):
         xs = [landmarks[i][0] for i in indices]
         ys = [landmarks[i][1] for i in indices]
         return sum(xs) / len(xs), sum(ys) / len(ys)
+
+    def _normalize_right_eye(self, gaze_x: float) -> float:
+        # Normalize right eye x-coordinate to left-eye coordinate system
+        return 1.0 - gaze_x
