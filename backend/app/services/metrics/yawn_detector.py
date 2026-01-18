@@ -33,6 +33,7 @@ class YawnMetric(BaseMetric):
         mar_threshold: float = DEFAULT_MAR_THRESHOLD,
         min_duration_frames: int = DEFAULT_MIN_DURATION_FRAMES,
         smoothing_alpha: float = DEFAULT_SMOOTHING_ALPHA,
+        hysteresis_ratio: float = 0.9,
 
         # Hysteresis: close threshold could be lower than open threshold
         mar_close_threshold: Optional[float] = None,
@@ -53,6 +54,8 @@ class YawnMetric(BaseMetric):
 
 
         self.mar_threshold = mar_threshold
+        self.mar_close_threshold = mar_threshold * hysteresis_ratio #hysteresis default
+
 
         # mar close threshold with default hysteresis
         if mar_close_threshold is not None and mar_close_threshold >= mar_threshold: # validation for the relationship between thresholds
