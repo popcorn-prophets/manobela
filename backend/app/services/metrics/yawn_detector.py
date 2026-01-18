@@ -55,6 +55,9 @@ class YawnMetric(BaseMetric):
         self.mar_threshold = mar_threshold
 
         # mar close threshold with default hysteresis
+        if mar_close_threshold is not None and mar_close_threshold >= mar_threshold: # validation for the relationship between thresholds
+            raise ValueError("mar_close_threshold must be less than mar_threshold")
+
         self.mar_close_threshold = (
             mar_close_threshold
             if mar_close_threshold is not None
