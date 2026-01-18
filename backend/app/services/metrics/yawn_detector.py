@@ -135,6 +135,12 @@ class YawnMetric(BaseMetric):
 
 
     def reset(self):
+
+        # Resetting progress after yawn completion
+        if self._open_counter >= self.min_duration_frames:
+            self._yawn_active = True
+            self._open_counter = 0
+
         self.smoother.reset()
         self._open_counter = 0
         self._yawn_active = False
