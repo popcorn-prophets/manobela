@@ -16,6 +16,10 @@ def _compute_mar(
         left = landmarks[61]
         right = landmarks[291]
 
+        # Validate coordinates are within reasonable bounds
+        if any(not all(-1e6 < c < 1e6 for c in p) for p in (top, bottom, left, right)):
+            return None
+
         # Validate each point has x,y
         if any(len(p) < 2 for p in (top, bottom, left, right)):
             return None
