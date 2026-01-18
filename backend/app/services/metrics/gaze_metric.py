@@ -8,10 +8,27 @@ logger = logging.getLogger(__name__)
 
 class GazeMetric(BaseMetric):
     """
-    Gaze metric based on iris position relative to eye corners.
+    Computes normalized gaze coordinates and detects off-road gaze.
 
-    The metric returns normalized gaze coordinates in eye space and flags when
-    gaze is outside a configured center range.
+    The metric calculates gaze direction based on iris position relative to
+    eye corners and lids. Returns normalized coordinates (0.0-1.0) in eye space
+    where (0.5, 0.5) represents center gaze.
+
+    Coordinate System:
+    - X-axis: 0.0 (left) to 1.0 (right)
+    - Y-axis: 0.0 (top) to 1.0 (bottom)
+    - Both eyes are normalized to the same coordinate system
+
+    Attributes:
+        horizontal_range: Tuple defining valid horizontal gaze range
+        vertical_range: Tuple defining valid vertical gaze range
+        landmarks: Mapping of landmark indices for eye features
+    Methods:
+        update: Computes gaze metrics from frame data
+        reset: Resets any internal state (no-op here)
+        _eye_gaze_ratio: Computes gaze ratio for one eye
+        _average_point: Computes average point from given landmark indices
+        _normalize_right_eye: Normalizes right eye x-coordinate to left-eye system
     """
 
     DEFAULT_HORIZONTAL_RANGE = (0.35, 0.65)
