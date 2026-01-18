@@ -62,9 +62,11 @@ class GazeMetric(BaseMetric):
             logger.warning(f"Invalid frame data type: {type(frame_data)}")
             return None
         landmarks = frame_data.get("landmarks")
-        if isinstance(landmarks, (list, tuple)):
-            logger.warning("Frame data contains multiple faces; Invalid format.")
-            return None
+        if isinstance(landmarks, (list, tuple)) and landmarks and isinstance(landmarks[0], (list, tuple)):
+             # detect whether it's a face list by looking one level deeper
+            if landmarks[0] and isinstance(landmarks[0][0], (list, tuple)):
+                logger.warning("Frame data contains multiple faces; Invalid format.")
+                landmarks =landmarks[0]  # Take the first face only
         if not landmarks:
             logger.debug("No landmarks in frame data")
             return None
@@ -92,43 +94,46 @@ class GazeMetric(BaseMetric):
             return None
 
         # Occlusion Handling for missing eye data
-        valid_ratios =[r for r in (left_ratio, right_ratio) if r is not None]
+        valid_ratios = [r for r in (left_ratio, right_ratio) if r is not None]
         if not valid_ratios:
             return None
 
         # Using the tuples in valid_ratios to compute average gaze
-        avg_x = sum(r[0] for r in valid_ratios) / len(valid_ratios)
-        avg_y = sum(r[1] for r in valid_ratios) / len(valid_ratios)
+        gaze_x = sum(r[0] for r in valid_ratios) / len(valid_ratios)
+        gaze_y = sum(r[1] for r in valid_ratios) / len(valid_ratios)
 
         # Handle right-eye normalization if needed
-        if right_ratio and right_ratio in valid_ratios and len(valid_ratios) == 1:
-            avg_x = self._normalize_right_eye(avg_x)  # Only normalize if right eye is the only valid one
+        confidence = 1.0 if (left_ratio and right_ratio) else 0.5
 
-        confidence = 1.0
-        if not left_ratio or not right_ratio:
-            confidence = 0.5  # Reduced confidence if one eye is occluded
-        if not left_ratio and not right_ratio:
-            confidence = 0.0  # No confidence if both eyes are occluded
+        left_x = left_y = right_x = right_y = None
+        if left_ratio:
+            left_x, left_y = left_ratio
+        if right_ratio:
+            right_x, right_y = right_ratio
+
+        in_ranges = GazeMetric.in_range
+
+        left_on_h = in_ranges(left_x, self.horizontal_range)
+        right_on_h = in_ranges(right_x, self.horizontal_range)
+        left_on_v = in_ranges(left_y, self.vertical_range)
+        right_on_v = in_ranges(right_y, self.vertical_range)
+
+        # Treat "missing eye" as neutral for AND by checking only present eyes
+        horizontal_ok = all(v is True for v in [x for x in (left_on_h, right_on_h) if x is not None])
+        vertical_ok = all(v is True for v in [y for y in (left_on_v, right_on_v) if y is not None])
+
 
         # Tuple assignment
-        left_x, left_y = left_ratio
-        right_x, right_y = right_ratio
-        right_x = self._normalize_right_eye(right_x)  # Normalize view of right eye horizontally
 
         # We treat both eyes independently for on-road detection
-        left_on_road = self.horizontal_range[0] <= left_x <= self.horizontal_range[1]
-        right_on_road = self.horizontal_range[0] <= right_x <= self.horizontal_range[1]
+        left_on_road = left_x is not None and self.horizontal_range[0] <= left_x <= self.horizontal_range[1]
+        right_on_road = right_x is not None and self.horizontal_range[0] <= right_x <= self.horizontal_range[1]
 
-        vertical_on_road = (
+        vertical_on_road = ( # For Debugging purposes
             self.vertical_range[0] <= left_y <= self.vertical_range[1]
             and self.vertical_range[0] <= right_y <= self.vertical_range[1]
         )
-        gaze_on_road = left_on_road and right_on_road and vertical_on_road
-
-
-        # Average gaze for debugging pruposes
-        gaze_x =(left_x + right_x) / 2.0
-        gaze_y = (left_y + right_y) / 2.0
+        gaze_on_road = horizontal_ok and vertical_ok
 
         return {
             "gaze": {
@@ -136,12 +141,12 @@ class GazeMetric(BaseMetric):
                 "gaze_y": gaze_y,
             },
             "eye": { # This is for debugging purposes
-                "left_eye": {"x": left_x, "y": left_y, "on_road": left_on_road},
-                "right_eye": {"x": right_x, "y": right_y, "on_road": right_on_road},
+                "left_eye": {"x": left_x, "y": left_y, "on_h": left_on_h, "on_v": left_on_v, "on_road": left_on_road},
+                "right_eye": {"x": right_x, "y": right_y, "on_h": right_on_h, "on_v": right_on_v, "on_road": right_on_road},
             },
             "gaze_on_road": gaze_on_road,
             "gaze_alert": not gaze_on_road,
-            "confidence": confidence
+            "confidence": confidence,
         }
 
     def reset(self) -> None:
@@ -185,6 +190,8 @@ class GazeMetric(BaseMetric):
         ys = [landmarks[i][1] for i in indices]
         return sum(xs) / len(xs), sum(ys) / len(ys)
 
-    def _normalize_right_eye(self, gaze_x: float) -> float:
-        # Normalize right eye x-coordinate to left-eye coordinate system
-        return 1.0 - gaze_x
+    @staticmethod
+    def in_range(val: Optional[float], rng: tuple[float, float]) -> Optional[bool]:
+        if val is None:
+            return None
+        return rng[0] <= val <= rng[1]
