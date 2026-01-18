@@ -57,8 +57,11 @@ class GazeMetric(BaseMetric):
             logger.debug(f"Gaze computation failed: {exc}")
             return None
 
-        if left_ratio is None or right_ratio is None:
+        # Occlusion Handling for missing eye data
+        validRatios =[r for r in (left_ratio, right_ratio) if r is not None]
+        if not validRatios:
             return None
+
 
         # Tupple assignment
         left_x, left_y = left_ratio
