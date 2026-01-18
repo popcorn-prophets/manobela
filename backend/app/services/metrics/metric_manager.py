@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 from app.services.metrics.base_metric import BaseMetric
 from app.services.metrics.eye_closure import EyeClosureMetric
+from app.services.metrics.yawn_detector import YawnMetric
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class MetricManager:
         self.metrics: list[BaseMetric] = [
             EyeClosureMetric(),
             # Add more metrics here
+            YawnMetric(),
         ]
 
     def update(self, frame_data: Dict[str, Any]) -> Dict[str, Any]:
