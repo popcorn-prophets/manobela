@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from app.services.metrics.base_metric import BaseMetric
 
@@ -52,7 +52,7 @@ class GazeMetric(BaseMetric):
         self.vertical_range = vertical_range
         self.landmarks = landmark_indices or self.LANDMARK_MAP
 
-    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Union[float, bool, Dict]]]:
         landmarks = frame_data.get("landmarks")
         logger.debug("No landmarks in frame data")
         if not landmarks:
@@ -136,11 +136,13 @@ class GazeMetric(BaseMetric):
 
     @staticmethod
     def _eye_gaze_ratio(
-        landmarks,
-        corners: tuple[int, int],
-        lids: tuple[int, int],
-        iris_indices: tuple[int, ...],
-    ) -> Optional[tuple[float, float]]:
+        self,
+        landmarks: List[tuple[float, float]],
+        corners: Tuple[int, int],
+        lids: Tuple[int, int],
+        iris_indices: Tuple[int, ...],
+        is_right_eye: bool = False,
+    ) -> Optional[Tuple[float, float]]:
         if max(corners + lids + iris_indices) >= len(landmarks):
             return None
 
