@@ -84,8 +84,18 @@ class GazeMetric(BaseMetric):
         if not validRatios:
             return None
 
+        # Using the tuples in validRatios to compute average gaze
+        avg_x = sum(r[0] for r in validRatios) / len(validRatios)
+        avg_y = sum(r[1] for r in validRatios) / len(validRatios)
 
-        # Tupple assignment
+        # Handle right-eye normalization if needed
+        if right_ratio and right_ratio in validRatios and len(validRatios) == 1:
+            avg_x = self._normalize_right_eye(avg_x)  # Only normalize if right eye is the only valid one
+
+        if left_ratio is None and right_ratio is None:
+            confidence = 0.0  # Lower confidence if one eye is missing
+
+        # Tuple assignment
         left_x, left_y = left_ratio
         right_x, right_y = right_ratio
         right_x = 1.0 - right_x  # Normalize view of right eye horizontally
@@ -145,6 +155,11 @@ class GazeMetric(BaseMetric):
 
         gaze_x = (iris_center[0] - landmarks[left_corner][0]) / width
         gaze_y = (iris_center[1] - landmarks[upper_lid][1]) / height
+
+        # Normalize right eye horizontally in ratio variables
+        if is_right_eye:
+            gaze_x = 1.0 - gaze_x
+            return gaze_x, gaze_y
 
         return gaze_x, gaze_y
 
