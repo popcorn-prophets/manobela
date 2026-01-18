@@ -64,11 +64,12 @@ class GazeMetric(BaseMetric):
         left_x, left_y = left_ratio
         right_x, right_y = right_ratio
 
+        right_x = 1.0 - right_x  # Normalize view of right eye horizontally
 
 
         # We treat both eyes independently for on-road detection
-        left_on_road = self.horizontal_range[0] <= left_ratio[0] <= self.horizontal_range[1]
-        right_on_road = self.horizontal_range[0] <= (1.0 - right_ratio[0]) <= self.horizontal_range[1]
+        left_on_road = self.horizontal_range[0] <= left_x <= self.horizontal_range[1]
+        right_on_road = self.horizontal_range[0] <= right_x <= self.horizontal_range[1]
 
         gaze_on_road = left_on_road and right_on_road
 
