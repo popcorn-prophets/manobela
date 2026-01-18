@@ -16,7 +16,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODEL_PATH = PROJECT_ROOT / "assets" / "models" / "yolov8n.onnx"
 
 # Essential classes to filter out from object detections
-ESSENTIAL_CLASSES: list[int] = [67]
+ESSENTIAL_CLASSES: list[int] = [
+    67  # cell phone
+]
 
 
 class ObjectDetector:
@@ -53,7 +55,7 @@ class ObjectDetector:
         Detect objects in a frame.
 
         Args:
-            frame: RGB frame to detect objects in.
+            frame: BGR frame to detect objects in.
             normalize: Whether to normalize bounding boxes to 0-1 range.
             conf_threshold: Confidence threshold for object detection.
             iou_threshold: Intersection over union threshold for object detection.
