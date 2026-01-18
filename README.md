@@ -95,7 +95,7 @@ python run.py
 cd mobile
 pnpm android  # or `pnpm ios`
 ```
-If you get 
+If you get: 
 ```bash
 could not connect to TCP port 5554: cannot connect to 127.0.0.1:5554: No connection could be made because the target machine actively refused it.
 ```
