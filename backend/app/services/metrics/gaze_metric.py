@@ -23,6 +23,7 @@ class GazeMetric(BaseMetric):
         horizontal_range: Tuple defining valid horizontal gaze range
         vertical_range: Tuple defining valid vertical gaze range
         landmarks: Mapping of landmark indices for eye features
+
     Methods:
         update: Computes gaze metrics from frame data
         reset: Resets any internal state (no-op here)
@@ -89,20 +90,23 @@ class GazeMetric(BaseMetric):
             return None
 
         # Occlusion Handling for missing eye data
-        validRatios =[r for r in (left_ratio, right_ratio) if r is not None]
-        if not validRatios:
+        valid_ratios =[r for r in (left_ratio, right_ratio) if r is not None]
+        if not valid_ratios:
             return None
 
-        # Using the tuples in validRatios to compute average gaze
-        avg_x = sum(r[0] for r in validRatios) / len(validRatios)
-        avg_y = sum(r[1] for r in validRatios) / len(validRatios)
+        # Using the tuples in valid_ratios to compute average gaze
+        avg_x = sum(r[0] for r in valid_ratios) / len(valid_ratios)
+        avg_y = sum(r[1] for r in valid_ratios) / len(valid_ratios)
 
         # Handle right-eye normalization if needed
-        if right_ratio and right_ratio in validRatios and len(validRatios) == 1:
+        if right_ratio and right_ratio in valid_ratios and len(valid_ratios) == 1:
             avg_x = self._normalize_right_eye(avg_x)  # Only normalize if right eye is the only valid one
 
-        if left_ratio is None and right_ratio is None:
-            confidence = 0.0  # Lower confidence if one eye is missing
+        confidence = 1.0
+        if not left_ratio or not right_ratio:
+            confidence = 0.5  # Reduced confidence if one eye is occluded
+        if not left_ratio and not right_ratio:
+            confidence = 0.0  # No confidence if both eyes are occluded
 
         # Tuple assignment
         left_x, left_y = left_ratio
@@ -135,7 +139,7 @@ class GazeMetric(BaseMetric):
             },
             "gaze_on_road": gaze_on_road,
             "gaze_alert": not gaze_on_road,
-            "confidence":1.0 if left_ratio and right_ratio else 0.5, # Confidence is 1.0 if both eyes are valid, else 0.5
+            "confidence": confidence
         }
 
     def reset(self) -> None:
