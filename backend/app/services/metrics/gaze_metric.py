@@ -54,7 +54,12 @@ class GazeMetric(BaseMetric):
 
     def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         landmarks = frame_data.get("landmarks")
+        logger.debug("No landmarks in frame data")
         if not landmarks:
+            return None
+
+        if len(landmarks) <= max(self.LANDMARK_MAP["RIGHT_IRIS"]):
+            logger.debug("Insufficient landmarks for gaze computation")
             return None
 
         try:
@@ -83,15 +88,11 @@ class GazeMetric(BaseMetric):
         # Tupple assignment
         left_x, left_y = left_ratio
         right_x, right_y = right_ratio
-
         right_x = 1.0 - right_x  # Normalize view of right eye horizontally
-
 
         # We treat both eyes independently for on-road detection
         left_on_road = self.horizontal_range[0] <= left_x <= self.horizontal_range[1]
         right_on_road = self.horizontal_range[0] <= right_x <= self.horizontal_range[1]
-
-
 
         vertical_on_road = (
             self.vertical_range[0] <= left_y <= self.vertical_range[1]
