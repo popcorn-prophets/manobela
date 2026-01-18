@@ -53,11 +53,18 @@ class GazeMetric(BaseMetric):
         self.landmarks = landmark_indices or self.LANDMARK_MAP
 
     def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Union[float, bool, Dict]]]:
-        landmarks = frame_data.get("landmarks")
-        logger.debug("No landmarks in frame data")
-        if not landmarks:
-            return None
 
+        # ---- Input Validation ----
+        if not isinstance(frame_data, dict):
+            logger.warning(f"Invalid frame data type: {type(frame_data)}")
+            return None
+        landmarks = frame_data.get("landmarks")
+        if isinstance(landmarks, (list, tuple)):
+            logger.warning("Frame data contains multiple faces; Invalid format.")
+            return None
+        if not landmarks:
+            logger.debug("No landmarks in frame data")
+            return None
         if len(landmarks) <= max(self.LANDMARK_MAP["RIGHT_IRIS"]):
             logger.debug("Insufficient landmarks for gaze computation")
             return None
