@@ -82,16 +82,23 @@ class GazeMetric(BaseMetric):
         )
         gaze_on_road = left_on_road and right_on_road and vertical_on_road
 
-        # Average gaze for debugging pruposes
 
+        # Average gaze for debugging pruposes
         gaze_x =(left_x + right_x) / 2.0
         gaze_y = (left_y + right_y) / 2.0
 
         return {
-            "gaze_x": left_on_road,
-            "gaze_y": right_on_road,
+            "gaze coordinates": {
+                "gaze_x": gaze_x,
+                "gaze_y": gaze_y,
+            },
+            "eye_details": { # This is for debugging purposes
+                "left_eye": {"x": left_x, "y": left_y, "on_road": left_on_road},
+                "right_eye": {"x": right_x, "y": right_y, "on_road": right_on_road},
+            },
             "gaze_on_road": gaze_on_road,
             "gaze_alert": not gaze_on_road,
+            "confidence":1.0 if left_ratio and right_ratio else 0.5, # Confidence is 1.0 if both eyes are valid, else 0.5
         }
 
     def reset(self) -> None:
