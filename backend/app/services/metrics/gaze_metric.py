@@ -60,6 +60,11 @@ class GazeMetric(BaseMetric):
         if left_ratio is None or right_ratio is None:
             return None
 
+        # Tupple assignment
+        left_x, left_y = left_ratio
+        right_x, right_y = right_ratio
+
+
 
         # We treat both eyes independently for on-road detection
         left_on_road = self.horizontal_range[0] <= left_ratio[0] <= self.horizontal_range[1]
