@@ -68,12 +68,14 @@ class GazeMetric(BaseMetric):
                 self.landmarks["LEFT_EYE_CORNERS"],
                 self.landmarks["LEFT_EYE_LIDS"],
                 self.landmarks["LEFT_IRIS"],
+                is_right_eye=False,
             )
             right_ratio = self._eye_gaze_ratio(
                 landmarks,
                 self.landmarks["RIGHT_EYE_CORNERS"],
                 self.landmarks["RIGHT_EYE_LIDS"],
                 self.landmarks["RIGHT_IRIS"],
+                is_right_eye=True,
             )
         except (IndexError, ZeroDivisionError) as exc:
             logger.debug(f"Gaze computation failed: {exc}")
