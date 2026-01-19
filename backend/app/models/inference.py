@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -13,7 +13,7 @@ class ObjectDetection(BaseModel):
     Object detection result for a single detected object.
     """
 
-    bbox: List[float]
+    bbox: list[float]
     conf: float
     class_id: int
 
@@ -34,6 +34,6 @@ class InferenceData(BaseModel):
 
     timestamp: str
     resolution: Resolution
-    face_landmarks: Optional[List[float]] = None
-    object_detections: Optional[List[ObjectDetection]] = None
-    metrics: Optional[Dict[str, Any]] = None
+    face_landmarks: Optional[list[float]] = None
+    object_detections: Optional[list[ObjectDetection]] = None
+    metrics: Optional[dict[str, Any]] = None

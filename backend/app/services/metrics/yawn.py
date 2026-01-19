@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from app.services.face_landmarker import FaceLandmark2D
 from app.services.metrics.base_metric import BaseMetric
@@ -118,7 +118,7 @@ class YawnMetric(BaseMetric):
         self._yawn_active = False
         self._yawn_count = 0
 
-    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(self, frame_data: dict[str, Any]) -> Optional[dict[str, Any]]:
         landmarks: Sequence[FaceLandmark2D] = frame_data.get("landmarks", [])
 
         if not landmarks:

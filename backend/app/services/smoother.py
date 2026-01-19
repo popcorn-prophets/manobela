@@ -1,4 +1,4 @@
-from typing import List, Optional, Sequence, Union
+from typing import Optional, Sequence, Union
 
 Numeric = Union[float, int]
 
@@ -17,10 +17,10 @@ class Smoother:
         """
         self.alpha = alpha
         self.max_missing = max_missing
-        self.last_value: Optional[List[float]] = None  # Last smoothed value
+        self.last_value: Optional[list[float]] = None  # Last smoothed value
         self.missing_count = 0  # Counter for consecutive missing inputs
 
-    def update(self, new_value: Optional[Sequence[Numeric]]) -> Optional[List[float]]:
+    def update(self, new_value: Optional[Sequence[Numeric]]) -> Optional[list[float]]:
         """
         Update with a new numeric sequence and return smoothed result.
 

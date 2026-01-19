@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, Sequence, Tuple, Union
+from typing import Any, Optional, Sequence, Union
 
 from app.services.face_landmarker import FaceLandmark2D
 from app.services.metrics.base_metric import BaseMetric
@@ -46,7 +46,7 @@ class GazeMetric(BaseMetric):
         self,
         horizontal_range: tuple[float, float] = DEFAULT_HORIZONTAL_RANGE,
         vertical_range: tuple[float, float] = DEFAULT_VERTICAL_RANGE,
-        landmark_indices: Dict[str, tuple[int, ...]] = None,
+        landmark_indices: dict[str, tuple[int, ...]] = None,
     ) -> None:
         self.horizontal_range = horizontal_range
         self.vertical_range = vertical_range
@@ -63,8 +63,8 @@ class GazeMetric(BaseMetric):
         )
 
     def update(
-        self, frame_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Union[float, bool, Dict]]]:
+        self, frame_data: dict[str, Any]
+    ) -> Optional[dict[str, Union[float, bool, dict]]]:
         # ---- Input Validation ----
         if not isinstance(frame_data, dict):
             logger.warning(f"Invalid frame data type: {type(frame_data)}")
@@ -148,11 +148,11 @@ class GazeMetric(BaseMetric):
     @staticmethod
     def _eye_gaze_ratio(
         landmarks: Sequence[FaceLandmark2D],
-        corners: Tuple[int, int],
-        lids: Tuple[int, int],
-        iris_indices: Tuple[int, ...],
+        corners: tuple[int, int],
+        lids: tuple[int, int],
+        iris_indices: tuple[int, ...],
         is_right_eye: bool = False,
-    ) -> Optional[Tuple[float, float]]:
+    ) -> Optional[tuple[float, float]]:
         if max(corners + lids + iris_indices) >= len(landmarks):
             return None
 

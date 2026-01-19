@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class BaseMetric(ABC):
@@ -8,7 +8,7 @@ class BaseMetric(ABC):
     """
 
     @abstractmethod
-    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(self, frame_data: dict[str, Any]) -> Optional[dict[str, Any]]:
         """
         Update the metric with the latest frame data.
 

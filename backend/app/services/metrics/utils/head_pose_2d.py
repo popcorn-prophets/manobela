@@ -4,7 +4,7 @@ No 3D coordinates or camera calibration required.
 """
 
 import math
-from typing import Sequence, Tuple
+from typing import Sequence
 
 from app.services.face_landmarker import FaceLandmark2D
 from app.services.metrics.utils.geometry import euclidean_dist
@@ -138,7 +138,7 @@ def compute_pitch_angle(landmarks: Sequence[FaceLandmark2D]) -> float:
 
 def compute_head_pose_angles_2d(
     landmarks: Sequence[FaceLandmark2D],
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """
     Compute head pose angles (yaw, pitch, roll) from 2D landmarks only.
 

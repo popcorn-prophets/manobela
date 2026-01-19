@@ -1,6 +1,6 @@
 import logging
 from collections import deque
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from app.core.config import settings
 from app.services.face_landmarker import FaceLandmark2D
@@ -42,7 +42,7 @@ class EyeClosureMetric(BaseMetric):
         self.last_value: Optional[float] = None
         self.eye_history: deque[bool] = deque(maxlen=self.window_size)
 
-    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(self, frame_data: dict[str, Any]) -> Optional[dict[str, Any]]:
         landmarks: Sequence[FaceLandmark2D] = frame_data.get("landmarks", [])
         if not landmarks:
             return None

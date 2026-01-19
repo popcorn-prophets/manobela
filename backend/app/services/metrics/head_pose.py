@@ -5,7 +5,7 @@ Estimates yaw, pitch, and roll angles
 
 import logging
 from collections import deque
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Optional, Sequence
 
 from app.core.config import settings
 from app.services.face_landmarker import FaceLandmark2D
@@ -61,12 +61,12 @@ class HeadPoseMetric(BaseMetric):
         self.window_size = max(1, int(window_sec * fps))
 
         # State tracking
-        self.last_angles: Optional[Tuple[float, float, float]] = None
+        self.last_angles: Optional[tuple[float, float, float]] = None
         self.yaw_history: deque[bool] = deque(maxlen=self.window_size)
         self.pitch_history: deque[bool] = deque(maxlen=self.window_size)
         self.roll_history: deque[bool] = deque(maxlen=self.window_size)
 
-    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(self, frame_data: dict[str, Any]) -> Optional[dict[str, Any]]:
         """
         Update head pose metric with current frame data.
 

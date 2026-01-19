@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 from aiortc import RTCDataChannel, RTCPeerConnection
 from fastapi import WebSocket
@@ -15,10 +15,10 @@ class ConnectionManager:
     """
 
     def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
-        self.peer_connections: Dict[str, RTCPeerConnection] = {}
-        self.data_channels: Dict[str, RTCDataChannel] = {}
-        self.frame_tasks: Dict[str, asyncio.Task] = {}
+        self.active_connections: dict[str, WebSocket] = {}
+        self.peer_connections: dict[str, RTCPeerConnection] = {}
+        self.data_channels: dict[str, RTCDataChannel] = {}
+        self.frame_tasks: dict[str, asyncio.Task] = {}
         logger.info("Connection Manager initialized")
 
     async def connect(self, websocket: WebSocket, client_id: str) -> None:

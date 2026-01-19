@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from app.services.metrics.base_metric import BaseMetric
 from app.services.metrics.eye_closure import EyeClosureMetric
@@ -27,11 +27,11 @@ class MetricManager:
             # Add more metrics here
         ]
 
-    def update(self, frame_data: Dict[str, Any]) -> Dict[str, Any]:
+    def update(self, frame_data: dict[str, Any]) -> dict[str, Any]:
         """
         Update all metrics with the current frame and return combined results.
         """
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
         for metric in self.metrics:
             try:
                 res = metric.update(frame_data)
