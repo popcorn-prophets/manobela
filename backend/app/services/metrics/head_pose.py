@@ -1,7 +1,8 @@
-"""""
+""" ""
 Head pose metric using 2D landmarks only.
 Estimates yaw, pitch, and roll angles
 """
+
 import logging
 from collections import deque
 from typing import Any, Dict, List, Optional, Tuple
@@ -52,7 +53,7 @@ class HeadPoseMetric(BaseMetric):
         self.roll_threshold = roll_threshold
 
         # Convert seconds to frames
-        fps = getattr(settings, 'target_fps', 30)  # Provide a sensible default
+        fps = getattr(settings, "target_fps", 30)  # Provide a sensible default
         if not isinstance(fps, (int, float)) or fps <= 0:
             fps = 30
             logger.warning("Invalid target_fps, defaulting to %s", fps)
@@ -102,22 +103,23 @@ class HeadPoseMetric(BaseMetric):
 
         # Compute sustained deviation (similar to PERCLOS in eye_closure)
         yaw_sustained = (
-            sum(self.yaw_history) / len(self.yaw_history)
-            if self.yaw_history else 0.0
+            sum(self.yaw_history) / len(self.yaw_history) if self.yaw_history else 0.0
         )
         pitch_sustained = (
             sum(self.pitch_history) / len(self.pitch_history)
-            if self.pitch_history else 0.0
+            if self.pitch_history
+            else 0.0
         )
         roll_sustained = (
             sum(self.roll_history) / len(self.roll_history)
-            if self.roll_history else 0.0
+            if self.roll_history
+            else 0.0
         )
 
         # Overall alert if any axis exceeds threshold
         any_alert = yaw_alert or pitch_alert or roll_alert
 
-        #App alerts
+        # App alerts
         return {
             "yaw": yaw,
             "pitch": pitch,

@@ -14,6 +14,7 @@ def euclidean_dist(a: tuple[float, float], b: tuple[float, float]) -> float:
     """
     return hypot(a[0] - b[0], a[1] - b[1])
 
+
 def average_point(landmarks, indices: tuple[int, ...]) -> tuple[float, float]:
     xs = [landmarks[i][0] for i in indices]
     ys = [landmarks[i][1] for i in indices]

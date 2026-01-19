@@ -16,9 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODEL_PATH = PROJECT_ROOT / "assets" / "models" / "yolov8n.onnx"
 
 # Essential classes to filter out from object detections
-ESSENTIAL_CLASSES: list[int] = [
-    67  # cell phone
-]
+ESSENTIAL_CLASSES: list[int] = [67]  # cell phone
 
 
 class ObjectDetector:

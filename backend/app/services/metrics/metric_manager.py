@@ -3,9 +3,9 @@ from typing import Any, Dict
 
 from app.services.metrics.base_metric import BaseMetric
 from app.services.metrics.eye_closure import EyeClosureMetric
-from app.services.metrics.yawn_detector import YawnMetric
-from app.services.metrics.head_pose import HeadPoseMetric
 from app.services.metrics.gaze_metric import GazeMetric
+from app.services.metrics.head_pose import HeadPoseMetric
+from app.services.metrics.yawn_detector import YawnMetric
 from app.services.phone_usage import PhoneUsageMetric
 
 logger = logging.getLogger(__name__)

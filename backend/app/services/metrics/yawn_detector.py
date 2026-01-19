@@ -1,9 +1,8 @@
-
 from typing import Any, Dict, Optional, Sequence
 
 from app.services.metrics.base_metric import BaseMetric
-from app.services.smoother import Smoother
 from app.services.metrics.utils.mar import compute_mar
+from app.services.smoother import Smoother
 
 Point2D = Sequence
 Landmarks = Sequence[Point2D]
@@ -39,21 +38,18 @@ class YawnMetric(BaseMetric):
         - MAR >= open_threshold  -> continue counting (optional; we keep counter going)
 
     """
+
     # ----- DEFAULT CONFIG -----
     DEFAULT_MAR_THRESHOLD = 0.6
     DEFAULT_MIN_DURATION_FRAMES = 15
     DEFAULT_SMOOTHING_ALPHA = 0.3
 
-
-
     def __init__(
-
         self,
         mar_threshold: float = DEFAULT_MAR_THRESHOLD,
         min_duration_frames: int = DEFAULT_MIN_DURATION_FRAMES,
         smoothing_alpha: float = DEFAULT_SMOOTHING_ALPHA,
         hysteresis_ratio: float = 0.9,
-
         # Hysteresis: close threshold could be lower than open threshold
         mar_close_threshold: Optional[float] = None,
     ):
@@ -75,8 +71,9 @@ class YawnMetric(BaseMetric):
             raise ValueError("min_duration_frames must be positive.")
 
         if not (0.0 <= smoothing_alpha <= 1.0):
-            raise ValueError(f"smoothing_alpha must be between 0 and 1, got {smoothing_alpha}")
-
+            raise ValueError(
+                f"smoothing_alpha must be between 0 and 1, got {smoothing_alpha}"
+            )
 
         if mar_close_threshold is None:
             # Ratio must be (0, 1) to insure close threshold < open threshold
@@ -89,15 +86,20 @@ class YawnMetric(BaseMetric):
             effective_close_threshold = mar_close_threshold
 
         if effective_close_threshold <= 0:
-                raise ValueError(f"mar_close_threshold must be positive, got {mar_close_threshold}")
+            raise ValueError(
+                f"mar_close_threshold must be positive, got {mar_close_threshold}"
+            )
 
-        if effective_close_threshold >= mar_threshold: # validation for the relationship between thresholds
+        if (
+            effective_close_threshold >= mar_threshold
+        ):  # validation for the relationship between thresholds
             raise ValueError("mar_close_threshold must be less than mar_threshold")
-
 
         # ----- STORE CONFIG -----
         self._mar_threshold = mar_threshold
-        self._mar_close_threshold = mar_threshold * hysteresis_ratio #hysteresis default
+        self._mar_close_threshold = (
+            mar_threshold * hysteresis_ratio
+        )  # hysteresis default
         self._min_duration_frames = min_duration_frames
         self._smoother = Smoother(alpha=smoothing_alpha)
 
@@ -123,7 +125,7 @@ class YawnMetric(BaseMetric):
             # Preserve yawn progress and active state
             return {
                 "mar": None,
-                "yawning": self._yawn_active, # Preserved state
+                "yawning": self._yawn_active,  # Preserved state
                 "yawn_progress": min(
                     self._open_counter / self._min_duration_frames,
                     1.0,
@@ -133,7 +135,7 @@ class YawnMetric(BaseMetric):
 
         mar = compute_mar(landmarks)
         if mar is None:
-            smoothed =self._smoother.update(None)
+            smoothed = self._smoother.update(None)
         else:
             smoothed = self._smoother.update([mar])
 
@@ -158,7 +160,7 @@ class YawnMetric(BaseMetric):
             self._open_counter = 0
             self._yawn_active = False
         else:
-            pass # Hold state within hysteresis band
+            pass  # Hold state within hysteresis band
 
         if self._open_counter >= self._min_duration_frames:
             self._yawn_active = True
@@ -172,7 +174,6 @@ class YawnMetric(BaseMetric):
             ),
             "yawn_count": self._yawn_count,
         }
-
 
     def reset(self):
         # Resetting progress after yawn completion

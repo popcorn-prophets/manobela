@@ -2,8 +2,8 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from app.services.metrics.base_metric import BaseMetric
-from app.services.metrics.utils.geometry import average_point
 from app.services.metrics.utils.calc import in_range
+from app.services.metrics.utils.geometry import average_point
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +39,9 @@ class GazeMetric(BaseMetric):
         "LEFT_EYE_LIDS": (159, 145),
         "RIGHT_EYE_LIDS": (386, 374),
         "LEFT_IRIS": (468, 469, 470, 471, 472),
-        "RIGHT_IRIS": (473, 474, 475, 476, 477)
+        "RIGHT_IRIS": (473, 474, 475, 476, 477),
     }
+
     def __init__(
         self,
         horizontal_range: tuple[float, float] = DEFAULT_HORIZONTAL_RANGE,
@@ -51,14 +52,19 @@ class GazeMetric(BaseMetric):
         self.vertical_range = vertical_range
         # Ensure required keys exist if custom provided
         if landmark_indices is not None:
-            missing =[k for k in self.LANDMARK_MAP.keys() if k not in landmark_indices]
+            missing = [k for k in self.LANDMARK_MAP.keys() if k not in landmark_indices]
             if missing:
                 raise ValueError(f"Missing landmark indices for: {missing}")
 
-        self.landmarks = dict(landmark_indices) if landmark_indices is not None else dict(self.LANDMARK_MAP)
+        self.landmarks = (
+            dict(landmark_indices)
+            if landmark_indices is not None
+            else dict(self.LANDMARK_MAP)
+        )
 
-    def update(self, frame_data: Dict[str, Any]) -> Optional[Dict[str, Union[float, bool, Dict]]]:
-
+    def update(
+        self, frame_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Union[float, bool, Dict]]]:
         # ---- Input Validation ----
         if not isinstance(frame_data, dict):
             logger.warning(f"Invalid frame data type: {type(frame_data)}")
@@ -122,9 +128,12 @@ class GazeMetric(BaseMetric):
         right_on_v = in_range(right_y, self.vertical_range)
 
         # Treat "missing eye" as neutral for AND by checking only present eyes
-        horizontal_ok = all(v is True for v in [x for x in (left_on_h, right_on_h) if x is not None])
-        vertical_ok = all(v is True for v in [y for y in (left_on_v, right_on_v) if y is not None])
-
+        horizontal_ok = all(
+            v is True for v in [x for x in (left_on_h, right_on_h) if x is not None]
+        )
+        vertical_ok = all(
+            v is True for v in [y for y in (left_on_v, right_on_v) if y is not None]
+        )
 
         # Tuple assignment
         gaze_on_road = horizontal_ok and vertical_ok
@@ -168,5 +177,3 @@ class GazeMetric(BaseMetric):
             return gaze_x, gaze_y
 
         return gaze_x, gaze_y
-
-

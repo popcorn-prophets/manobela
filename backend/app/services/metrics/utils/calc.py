@@ -7,6 +7,7 @@ Methods:
     in_range: Checks if a value is within a specified range.
 """
 
+
 def in_range(val: Optional[float], rng: tuple[float, float]) -> Optional[bool]:
     if val is None:
         return None
