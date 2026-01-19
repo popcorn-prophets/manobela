@@ -80,7 +80,59 @@ pipx install pre-commit
 pre-commit install --install-hooks
 ```
 
-#### 5. Run the application
+#### 5. If you want to run on a Physical Device (Android)
+
+##### Enable Developer Options
+
+1. Go to **Settings → About Phone**
+2. Tap **Build Number** **7 times**
+3. You should see: _"You are now a developer"_
+
+---
+
+### Option A: Easier Version (USB – Recommended)
+
+1. Go to **Settings → Developer Options**
+2. Enable **USB Debugging**
+3. Connect your phone to your laptop using a USB cable
+4. Verify device connection:
+
+```sh
+adb devices
+```
+
+If your device appear then you are ready
+
+### Option B: Better Version (Wireless ADB)
+
+> Requires Android 11+ and both devices on the same Wi-Fi network
+
+1. Go to **Settings → Developer Options**
+2. Enable **Wireless Debugging**
+3. Tap **Wireless Debugging** → **Pair device with pairing code**
+4. Note the **IP address, pairing port, and pairing code**
+
+#### Pair your device
+
+```sh
+adb pair <ip address> → pairing code
+adb connect <ip address>
+```
+
+#### Verify device
+
+```sh
+adb device
+```
+
+#### Proceed to backend
+
+```sh
+cd backend
+adb reverse tcp:8000 tcp:8000
+```
+
+#### 6. Run the application
 
 Run simultaneously the backend and the mobile app in separate terminals:
 
@@ -88,10 +140,11 @@ Run simultaneously the backend and the mobile app in separate terminals:
 cd backend
 source .venv/bin/activate
 python run.py
-# or uv run run.py
+# or uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ```sh
 cd mobile
 pnpm android  # or `pnpm ios`
+pnpm dev --tunnel # if using smartphone device
 ```
