@@ -51,6 +51,19 @@ class MediapipeFaceLandmarker(FaceLandmarker):
         min_face_presence_confidence: float = 0.3,
         min_tracking_confidence: float = 0.5,
     ) -> None:
+        """
+        Initialize face landmark detector.
+        Args:
+            model_path: Path to the ONNX model file.
+            num_faces: Number of faces to detect.
+            min_face_detection_confidence: Minimum confidence threshold for face detection.
+            min_face_presence_confidence: Minimum confidence threshold for face presence.
+            min_tracking_confidence: Minimum confidence threshold for face tracking.
+
+        Raises:
+            ValueError: If parameters are invalid.
+            RuntimeError: If model loading fails.
+        """
         self._lock = threading.Lock()
 
         try:
@@ -78,6 +91,12 @@ class MediapipeFaceLandmarker(FaceLandmarker):
     ) -> Sequence[FaceLandmark2D]:
         """
         Detect face landmarks in an image.
+
+        Args:
+            img: BGR image to detect landmarks in.
+
+        Returns:
+            List of detected face landmarks.
         """
         rgb_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(

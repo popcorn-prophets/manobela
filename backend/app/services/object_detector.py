@@ -32,9 +32,13 @@ class ObjectDetection(BaseModel):
 
 
 class ObjectDetector(Protocol):
+    """
+    Abstraction for object detection.
+    """
+
     def detect(
         self,
-        frame: np.ndarray,
+        img: np.ndarray,
         normalize: bool = True,
         conf_threshold: float = 0.3,
         iou_threshold: float = 0.5,
@@ -45,7 +49,7 @@ class ObjectDetector(Protocol):
 
 class YoloObjectDetector(ObjectDetector):
     """
-    Object detector using YOLOv8 ONNX model.
+    YOLO-based implementation of object detector.
     """
 
     def __init__(self, model_path: Path = MODEL_PATH, input_size: int = 640):
@@ -106,16 +110,16 @@ class YoloObjectDetector(ObjectDetector):
 
     def detect(
         self,
-        frame: np.ndarray,
+        img: np.ndarray,
         normalize: bool = True,
         conf_threshold: float = 0.3,
         iou_threshold: float = 0.5,
     ) -> list[ObjectDetection]:
         """
-        Detect objects in a frame.
+        Detect objects in an image.
 
         Args:
-            frame: BGR frame to detect objects in.
+            img: BGR image to detect objects in.
             normalize: Whether to normalize bounding boxes to 0-1 range.
             conf_threshold: Confidence threshold for object detection.
             iou_threshold: Intersection over union threshold for object detection.
@@ -127,9 +131,11 @@ class YoloObjectDetector(ObjectDetector):
             raise RuntimeError("Object detector has been closed")
 
         try:
-            img, ratio, pad = letterbox(frame, self.input_size)
+            orig_shape = img.shape[:2]
 
-            tensor = self._preprocess(img)
+            img_lb, ratio, pad = letterbox(img, self.input_size)
+
+            tensor = self._preprocess(img_lb)
 
             with self._lock:
                 outputs = self.session.run(None, {self.input_name: tensor})
@@ -144,7 +150,7 @@ class YoloObjectDetector(ObjectDetector):
 
             results = self._postprocess(
                 output,
-                frame.shape[:2],
+                orig_shape,
                 ratio,
                 pad,
                 conf_threshold,
@@ -161,7 +167,7 @@ class YoloObjectDetector(ObjectDetector):
 
     def close(self) -> None:
         """
-        Close the ONNX Runtime session and release resources.
+        Release underlying resources.
         Safe to call multiple times.
         """
         with self._lock:
@@ -179,9 +185,8 @@ class YoloObjectDetector(ObjectDetector):
         try:
             img = img[:, :, ::-1]  # BGR -> RGB
             img = img.transpose(2, 0, 1)  # HWC -> CHW
-            img = (
-                np.ascontiguousarray(img, dtype=np.float32) / 255.0
-            )  # Normalize to [0, 1]
+            # Normalize to [0, 1]
+            img = np.ascontiguousarray(img, dtype=np.float32) / 255.0
             return img[None]  # Add batch dimension
         except Exception as e:
             logger.error(f"Preprocessing failed: {e}")
