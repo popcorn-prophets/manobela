@@ -1,8 +1,3 @@
-""" ""
-Head pose metric using 2D landmarks only.
-Estimates yaw, pitch, and roll angles
-"""
-
 import logging
 from collections import deque
 from typing import Any, Optional, Sequence
@@ -22,15 +17,16 @@ class HeadPoseMetric(BaseMetric):
 
     This implementation uses only 2D (x, y) landmarks.
 
-    Ps. Inaccurate pitch angle since only 2D
+    Note: Pitch is less accurate because only 2D landmarks are used.
     """
 
     # Default thresholds in degrees
-    DEFAULT_YAW_THRESHOLD = 30.0  # Left/right turn
-    DEFAULT_PITCH_THRESHOLD = 25.0  # Up/down tilt
-    DEFAULT_ROLL_THRESHOLD = 20.0  # Head tilt
+    DEFAULT_YAW_THRESHOLD = 30.0
+    DEFAULT_PITCH_THRESHOLD = 25.0
+    DEFAULT_ROLL_THRESHOLD = 20.0
 
-    DEFAULT_WINDOW_SEC = 5  # Rolling window for sustained deviation
+    # Rolling window for sustained deviation
+    DEFAULT_WINDOW_SEC = 5
 
     def __init__(
         self,
@@ -49,6 +45,7 @@ class HeadPoseMetric(BaseMetric):
                             Positive = clockwise tilt, negative = counterclockwise tilt.
             window_sec: Rolling window duration for sustained deviation detection.
         """
+
         self.yaw_threshold = yaw_threshold
         self.pitch_threshold = pitch_threshold
         self.roll_threshold = roll_threshold
@@ -58,38 +55,24 @@ class HeadPoseMetric(BaseMetric):
         if not isinstance(fps, (int, float)) or fps <= 0:
             fps = 30
             logger.warning("Invalid target_fps, defaulting to %s", fps)
+
         self.window_size = max(1, int(window_sec * fps))
 
-        # State tracking
-        self.last_angles: Optional[tuple[float, float, float]] = None
         self.yaw_history: deque[bool] = deque(maxlen=self.window_size)
         self.pitch_history: deque[bool] = deque(maxlen=self.window_size)
         self.roll_history: deque[bool] = deque(maxlen=self.window_size)
 
     def update(self, frame_data: dict[str, Any]) -> Optional[dict[str, Any]]:
-        """
-        Update head pose metric with current frame data.
-
-        Args:
-            frame_data: Dictionary containing 'landmarks' key with
-                       list of (x, y) tuples (2D landmarks).
-
-        Returns:
-            Dictionary with head pose angles and alerts, or None if insufficient data.
-        """
         landmarks: Sequence[FaceLandmark2D] = frame_data.get("landmarks", [])
         if not landmarks:
             return None
 
-        # Compute head pose angles from 2D landmarks
+        # Compute head pose angles
         try:
             yaw, pitch, roll = compute_head_pose_angles_2d(landmarks)
         except (ValueError, IndexError, ZeroDivisionError) as e:
             logger.debug(f"Head pose computation failed: {e}")
             return None
-
-        # Update state
-        self.last_angles = (yaw, pitch, roll)
 
         # Check thresholds (absolute values for all angles)
         yaw_alert = abs(yaw) > self.yaw_threshold
@@ -101,25 +84,14 @@ class HeadPoseMetric(BaseMetric):
         self.pitch_history.append(pitch_alert)
         self.roll_history.append(roll_alert)
 
-        # Compute sustained deviation (similar to PERCLOS in eye_closure)
-        yaw_sustained = (
-            sum(self.yaw_history) / len(self.yaw_history) if self.yaw_history else 0.0
-        )
-        pitch_sustained = (
-            sum(self.pitch_history) / len(self.pitch_history)
-            if self.pitch_history
-            else 0.0
-        )
-        roll_sustained = (
-            sum(self.roll_history) / len(self.roll_history)
-            if self.roll_history
-            else 0.0
-        )
+        # Compute sustained deviation
+        yaw_sustained = self._sustained_ratio(self.yaw_history)
+        pitch_sustained = self._sustained_ratio(self.pitch_history)
+        roll_sustained = self._sustained_ratio(self.roll_history)
 
         # Overall alert if any axis exceeds threshold
         any_alert = yaw_alert or pitch_alert or roll_alert
 
-        # App alerts
         return {
             "yaw": yaw,
             "pitch": pitch,
@@ -134,8 +106,11 @@ class HeadPoseMetric(BaseMetric):
         }
 
     def reset(self):
-        """Reset metric state."""
         self.last_angles = None
         self.yaw_history.clear()
         self.pitch_history.clear()
         self.roll_history.clear()
+
+    @staticmethod
+    def _sustained_ratio(history: deque[bool]) -> float:
+        return sum(history) / len(history) if history else 0.0
