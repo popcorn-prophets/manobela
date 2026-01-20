@@ -4,6 +4,7 @@ from collections import deque
 from app.core.config import settings
 from app.services.metrics.base_metric import BaseMetric, MetricOutputBase
 from app.services.metrics.frame_context import FrameContext
+from app.services.metrics.utils.ear import average_ear
 from app.services.metrics.utils.eye_gaze_ratio import (
     left_eye_gaze_ratio,
     right_eye_gaze_ratio,
@@ -35,6 +36,9 @@ class GazeMetric(BaseMetric):
     DEFAULT_VERTICAL_RANGE = (0.35, 0.65)
     DEFAULT_WINDOW_SEC = 3
     DEFAULT_THRESHOLD = 0.5
+    # If eyes appear closed (low EAR), do not treat gaze as "off road".
+    # Those frames should be handled by eye-closure/drowsiness metrics instead.
+    DEFAULT_EAR_CLOSED_THRESHOLD = 0.15
 
     def __init__(
         self,
@@ -42,10 +46,12 @@ class GazeMetric(BaseMetric):
         vertical_range: tuple[float, float] = DEFAULT_VERTICAL_RANGE,
         window_sec: int = DEFAULT_WINDOW_SEC,
         threshold: float = DEFAULT_THRESHOLD,
+        ear_closed_threshold: float = DEFAULT_EAR_CLOSED_THRESHOLD,
     ) -> None:
         self.horizontal_range = horizontal_range
         self.vertical_range = vertical_range
         self.threshold = threshold
+        self.ear_closed_threshold = ear_closed_threshold
 
         # Convert seconds to frames
         self.window_size = max(1, int(window_sec * settings.target_fps))
@@ -55,19 +61,33 @@ class GazeMetric(BaseMetric):
         landmarks = context.face_landmarks
 
         if not landmarks:
-            self._history.append(False)
+            # No face detected -> treat as "no gaze signal", not an alert frame.
+            self._history.append(None)
             return {"gaze_alert": False, "gaze_rate": 0.0}
+
+        # If eyes are closed, skip gaze evaluation (don't warn for "looking away").
+        try:
+            ear_value = average_ear(landmarks)
+            if ear_value < self.ear_closed_threshold:
+                self._history.append(None)
+                valid_frames = [v for v in self._history if v is not None]
+                ratio = sum(valid_frames) / len(valid_frames) if valid_frames else 0.0
+                return {"gaze_alert": False, "gaze_rate": ratio}
+        except (IndexError, ZeroDivisionError) as error:
+            logger.debug(f"EAR computation failed in gaze metric: {error}")
 
         try:
             left_ratio = left_eye_gaze_ratio(landmarks)
             right_ratio = right_eye_gaze_ratio(landmarks)
         except (IndexError, ZeroDivisionError) as exc:
             logger.debug(f"Gaze computation failed: {exc}")
-            self._history.append(False)
+            self._history.append(None)
             return {"gaze_alert": False, "gaze_rate": 0.0}
 
         if left_ratio is None and right_ratio is None:
-            gaze_on_road = False
+            # Common when the iris/eye-box can't be computed (e.g. blink/closed eyes).
+            # Don't treat as off-road gaze.
+            gaze_alert_frame = None
         else:
             left_on_h = in_range(
                 left_ratio[0] if left_ratio else None, self.horizontal_range
@@ -91,9 +111,9 @@ class GazeMetric(BaseMetric):
             )
 
             gaze_on_road = horizontal_ok and vertical_ok
+            gaze_alert_frame = not gaze_on_road
 
         # Convert to alert flag
-        gaze_alert_frame = not gaze_on_road
         self._history.append(gaze_alert_frame)
 
         valid_frames = [v for v in self._history if v is not None]
