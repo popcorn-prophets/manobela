@@ -29,7 +29,7 @@ export const ConnectionStatus = ({ sessionState, clientId, error }: ConnectionSt
   const truncatedClientId = clientId ? `${clientId.slice(0, 6)}...${clientId.slice(-4)}` : '';
 
   return (
-    <View className="w-full flex-row items-center justify-between py-1">
+    <View className="w-full flex-row items-center justify-between px-1 py-1">
       <Text className={`text-xs font-semibold ${statusColor} text-center`}>{statusLabel}</Text>
 
       {clientId && (

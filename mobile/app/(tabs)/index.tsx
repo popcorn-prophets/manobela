@@ -34,7 +34,7 @@ export default function MonitorScreen() {
   }, [inferenceData?.resolution?.width, inferenceData?.resolution?.height]);
 
   return (
-    <ScrollView className="flex-1 px-4 py-4">
+    <ScrollView className="flex-1 px-2 py-1">
       <Stack.Screen options={{ title: 'Monitor' }} />
 
       <ConnectionStatus sessionState={sessionState} clientId={clientId} error={error} />
