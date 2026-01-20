@@ -25,7 +25,6 @@ export interface YawnMetricOutput {
   yawn_rate_alert: boolean;
 }
 export interface HeadPoseMetricOutput {
-  head_pose_alert: boolean;
   yaw_alert: boolean;
   pitch_alert: boolean;
   roll_alert: boolean;

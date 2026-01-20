@@ -28,12 +28,10 @@ export const METRIC_DISPLAY_CONFIGS: Record<MetricId, MetricConfig> = {
   head_pose: {
     icon: ({ size, color }) => <MaterialCommunityIcons name="head" size={size} color={color} />,
     label: 'Head',
-    getWarningState: (data) =>
-      Boolean(data?.head_pose_alert || data?.yaw_alert || data?.pitch_alert || data?.roll_alert),
+    getWarningState: (data) => Boolean(data?.yaw_alert || data?.pitch_alert || data?.roll_alert),
     getFillRatio: (data) => {
       if (!data) return undefined;
-      const avg = (data.yaw_sustained + data.pitch_sustained + data.roll_sustained) / 3;
-      return Math.max(0, Math.min(1, avg / 30));
+      return Math.max(data.yaw_sustained, data.pitch_sustained, data.roll_sustained);
     },
   },
   gaze: {

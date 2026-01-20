@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class HeadPoseMetricOutput(MetricOutputBase):
-    head_pose_alert: bool
     yaw_alert: bool
     pitch_alert: bool
     roll_alert: bool
@@ -34,9 +33,9 @@ class HeadPoseMetric(BaseMetric):
     """
 
     # Default thresholds in degrees
-    DEFAULT_YAW_THRESHOLD = 30.0
-    DEFAULT_PITCH_THRESHOLD = 25.0
-    DEFAULT_ROLL_THRESHOLD = 20.0
+    DEFAULT_YAW_THRESHOLD = 50.0
+    DEFAULT_PITCH_THRESHOLD = 10.0
+    DEFAULT_ROLL_THRESHOLD = 30.0
 
     # Rolling window for sustained deviation
     DEFAULT_WINDOW_SEC = 5
@@ -79,7 +78,6 @@ class HeadPoseMetric(BaseMetric):
         landmarks = context.face_landmarks
         if not landmarks:
             return {
-                "head_pose_alert": False,
                 "yaw": None,
                 "pitch": None,
                 "roll": None,
@@ -97,7 +95,6 @@ class HeadPoseMetric(BaseMetric):
         except (ValueError, IndexError, ZeroDivisionError) as e:
             logger.debug(f"Head pose computation failed: {e}")
             return {
-                "head_pose_alert": False,
                 "yaw": None,
                 "pitch": None,
                 "roll": None,
@@ -124,9 +121,6 @@ class HeadPoseMetric(BaseMetric):
         pitch_sustained = self._sustained_ratio(self.pitch_history)
         roll_sustained = self._sustained_ratio(self.roll_history)
 
-        # Overall alert if any axis exceeds threshold
-        any_alert = yaw_alert or pitch_alert or roll_alert
-
         return {
             "yaw": yaw,
             "pitch": pitch,
@@ -137,7 +131,6 @@ class HeadPoseMetric(BaseMetric):
             "yaw_sustained": yaw_sustained,
             "pitch_sustained": pitch_sustained,
             "roll_sustained": roll_sustained,
-            "head_pose_alert": any_alert,
         }
 
     def reset(self):
