@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useCamera } from '@/hooks/useCamera';
 import { useMonitoringSession } from '@/hooks/useMonitoringSession';
@@ -27,6 +27,12 @@ export default function MonitorScreen() {
     }
   }, [sessionState, start, stop]);
 
+  const aspectRatio = useMemo(() => {
+    const width = inferenceData?.resolution?.width ?? 320;
+    const height = inferenceData?.resolution?.height ?? 480;
+    return width / height;
+  }, [inferenceData?.resolution?.width, inferenceData?.resolution?.height]);
+
   return (
     <ScrollView className="flex-1 px-4 py-4">
       <Stack.Screen options={{ title: 'Monitor' }} />
@@ -42,9 +48,7 @@ export default function MonitorScreen() {
           onToggle={handleToggle}
           style={{
             width: '100%',
-            aspectRatio:
-              (inferenceData?.resolution?.width ?? 320) /
-              (inferenceData?.resolution?.height ?? 480),
+            aspectRatio,
           }}
         />
       </View>
