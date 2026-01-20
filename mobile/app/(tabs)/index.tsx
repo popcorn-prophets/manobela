@@ -42,13 +42,7 @@ export default function MonitorScreen() {
     <ScrollView className="flex-1 px-4 py-4">
       <Stack.Screen options={{ title: 'Monitor' }} />
 
-      <ConnectionStatus
-        sessionState={sessionState}
-        clientId={clientId}
-        connectionStatus={connectionStatus}
-        transportStatus={transportStatus}
-        error={error}
-      />
+      <ConnectionStatus sessionState={sessionState} clientId={clientId} error={error} />
 
       <View className="mb-4 w-full">
         <MediaStreamView
