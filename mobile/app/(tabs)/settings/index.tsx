@@ -1,10 +1,11 @@
 import { useMemo, type ReactNode } from 'react';
-import { Linking, Pressable, ScrollView, Switch, View } from 'react-native';
+import { Linking, ScrollView, Switch, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import Constants from 'expo-constants';
-import SettingRow from '@/lib/settings/'
+import { SettingRow } from '@/components/setting/settings-row';
+import { Section } from '@/components/setting/settings-section'
+
 import {
-  ChevronRight,
   Globe,
   HelpCircle,
   Github,
@@ -16,8 +17,6 @@ import {
   SunMoon,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import { Text } from '@/components/ui/text';
-import { Icon } from '@/components/ui/icon';
 
 const LINKS = {
   faq: 'https://github.com/popcorn-prophets/manobela/blob/main/README.md',
@@ -28,63 +27,6 @@ const LINKS = {
 };
 
 
-// Faint glowing code block -- start --
-const baseClassName = 'flex-row items-center justify-between rounded-2xl px-4 py-3';
-const content = (pressed?: boolean) => (
-  <View
-    className={[
-      baseClassName,
-      disabled ? 'bg-card opacity-50' : pressed ? 'bg-muted/40' : 'bg-card',
-    ].join(' ')}
-  >
-    <View className="flex-row items-center">
-      <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-muted">
-        <Icon as={icon} className="text-foreground" size={18} />
-      </View>
-
-      <View>
-        <Text className="text-base font-medium text-foreground">{label}</Text>
-        {value ? <Text className="text-sm text-muted-foreground">{value}</Text> : null}
-      </View>
-    </View>
-
-    <View className="flex-row items-center">
-      {rightElement}
-      {onPress ? <Icon as={ChevronRight} className="ml-2 text-muted-foreground" size={18} /> : null}
-    </View>
-  </View>
-);
-
-if (!onPress) return content(false);
-
-return (
-  <Pressable
-    accessibilityRole="button"
-    disabled={disabled}
-    onPress={disabled ? undefined : onPress}
-  >
-    {({ pressed }) => content(pressed)}
-  </Pressable>
-);
-// Faint glowing code block -- end --
-}
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <View className="mb-6">
-      <Text className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </Text>
-      <View className="gap-3">{children}</View>
-    </View>
-  );
-}
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -97,10 +39,10 @@ export default function SettingsScreen() {
   const aboutValue = useMemo(() => `${appName} • v${appVersion}`, [appName, appVersion]);
 
   const handleOpenLink = async (url: string) => {
-    try{
-      await Linking.openURL(url)
-    }catch (e){
-      console.warn('Failed to open URL', url, e)
+    try {
+      await Linking.openURL(url);
+    } catch (e) {
+      console.warn('Failed to open URL', url, e);
     }
   };
 
@@ -128,46 +70,22 @@ export default function SettingsScreen() {
       </Section>
 
       <Section title="Support & Feedback">
-        <SettingRow
-          icon={HelpCircle}
-          label="FAQ"
-          onPress={() => handleOpenLink(LINKS.faq)}
-        />
-        <SettingRow
-          icon={Github}
-          label="GitHub Issues"
-          onPress={() => handleOpenLink(LINKS.issues)}
-        />
+        <SettingRow icon={HelpCircle} label="FAQ" onPress={() => handleOpenLink(LINKS.faq)} />
+        <SettingRow icon={Github} label="GitHub Issues" onPress={() => handleOpenLink(LINKS.issues)} />
       </Section>
 
       <Section title="About">
         <SettingRow icon={Info} label="App" value={aboutValue} />
       </Section>
 
-      <Section title = "API">
-        <SettingRow
-          icon={Globe}
-          label="Configure URL"
-          onPress={() => router.push('/settings/api-websocket')}
-        />
+      <Section title="API">
+        <SettingRow icon={Globe} label="Configure URL" onPress={() => router.push('/settings/api-websocket')} />
       </Section>
 
       <Section title="Legal & Compliance">
-        <SettingRow
-          icon={ShieldCheck}
-          label="Privacy Policy"
-          onPress={() => handleOpenLink(LINKS.privacy)}
-        />
-        <SettingRow
-          icon={FileText}
-          label="Terms & Conditions"
-          onPress={() => handleOpenLink(LINKS.terms)}
-        />
-        <SettingRow
-          icon={Link2}
-          label="Data Protection"
-          onPress={() => handleOpenLink(LINKS.dataProtection)}
-        />
+        <SettingRow icon={ShieldCheck} label="Privacy Policy" onPress={() => handleOpenLink(LINKS.privacy)} />
+        <SettingRow icon={FileText} label="Terms & Conditions" onPress={() => handleOpenLink(LINKS.terms)} />
+        <SettingRow icon={Link2} label="Data Protection" onPress={() => handleOpenLink(LINKS.dataProtection)} />
       </Section>
     </ScrollView>
   );

@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { ChevronRight } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 
 export type SettingRowProps = {
   icon: typeof ChevronRight;
@@ -20,7 +21,14 @@ export function SettingRow({
   rightElement,
   disabled = false,
 }: SettingRowProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme == 'dark';
+
   const Icon = icon;
+
+  const iconColor = isDark ? 'white' : 'black';
+  const chevronColor =isDark ? 'white' : 'black';
+
   const baseClassName = 'flex-row items-center justify-between rounded-2xl px-4 py-3';
 
   const content = (pressed = false) => (
@@ -32,7 +40,7 @@ export function SettingRow({
     >
       <View className="flex-row items-center">
         <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-muted">
-          <Icon className="text-foreground" size={18} />
+          <Icon className="text-foreground" size={18} color={iconColor}/>
         </View>
 
         <View>
@@ -44,7 +52,7 @@ export function SettingRow({
       <View className="flex-row items-center">
         {rightElement}
         {onPress ? (
-          <ChevronRight className="ml-2 text-muted-foreground" size={18} />
+          <ChevronRight className="ml-2 text-muted-foreground" size={18} color={chevronColor}/>
         ) : null}
       </View>
     </View>
