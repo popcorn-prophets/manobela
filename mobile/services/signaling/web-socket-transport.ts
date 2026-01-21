@@ -48,10 +48,23 @@ export class WebSocketTransport implements SignalingTransport {
 
       // Connection-level error (usually fatal)
       ws.onerror = (e: any) => {
-        const message = e?.message || 'Unknown WebSocket error';
-        console.error('WebSocket error:', message);
+        const rawMessage =
+          e?.message || e?.error?.message || e?.error?.toString?.() || e?.type || '';
+        const normalized = rawMessage.toLowerCase().trim();
+        const friendlyMessage =
+          !rawMessage ||
+          rawMessage === 'Unknown WebSocket error' ||
+          normalized === 'error' ||
+          normalized.includes('econnrefused') ||
+          normalized.includes('enotfound') ||
+          normalized.includes('eai_again') ||
+          normalized.includes('host not found')
+            ? 'Unable to reach the signaling server. Please check your connection or try again later.'
+            : rawMessage;
+
+        console.error('WebSocket error:', e);
         this.status = 'closed';
-        reject(new Error(`WebSocket error: ${message}`));
+        reject(new Error(friendlyMessage));
       };
 
       // Remote or local close

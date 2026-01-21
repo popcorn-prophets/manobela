@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { View, ScrollView } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Alert, View, ScrollView } from 'react-native';
 import { useCamera } from '@/hooks/useCamera';
 import { useMonitoringSession } from '@/hooks/useMonitoringSession';
 import { MediaStreamView } from '@/components/media-stream-view';
@@ -47,6 +47,20 @@ export default function MonitorScreen() {
     const height = inferenceData?.resolution?.height ?? 480;
     return width / height;
   }, [inferenceData?.resolution?.width, inferenceData?.resolution?.height]);
+
+  const lastErrorRef = useRef<string | null>(null);
+  // --- Friendly Message Error block ---
+    useEffect(() => {
+    if (!error) {
+      lastErrorRef.current = null;
+      return;
+    }
+    if (error === lastErrorRef.current) return;
+    lastErrorRef.current = error;
+    Alert.alert('Connection Error', error);
+  }, [error]);
+
+  // ------------
 
   return (
     <ScrollView className="flex-1 px-2 py-1">
