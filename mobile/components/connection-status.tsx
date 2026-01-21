@@ -20,25 +20,23 @@ export const ConnectionStatus = ({ sessionState, clientId, error }: ConnectionSt
   })();
 
   const statusLabel = (() => {
-    if (sessionState === 'active') return 'ACTIVE';
-    if (sessionState === 'starting') return 'STARTING...';
-    if (sessionState === 'stopping') return 'STOPPING...';
+    if (sessionState === 'active') return 'ON';
+    if (sessionState === 'starting') return 'START';
+    if (sessionState === 'stopping') return 'STOP';
     return 'IDLE';
   })();
 
-  const truncatedClientId = clientId ? `${clientId.slice(0, 6)}...${clientId.slice(-4)}` : '';
+  const truncatedClientId = clientId ? `${clientId.slice(0, 6)}...${clientId.slice(-4)}` : 'No ID';
 
   return (
-    <View className="w-full flex-row items-center justify-between px-1 py-1">
+    <View className="w-full flex-row items-center justify-between py-1">
       <Text className={`text-xs font-semibold ${statusColor} text-center`}>{statusLabel}</Text>
 
-      {clientId && (
-        <TouchableOpacity onPress={() => setShowFullId((prev) => !prev)} activeOpacity={0.7}>
-          <Text className="text-center text-xs text-muted-foreground">
-            {'ID: ' + (showFullId ? clientId : truncatedClientId)}
-          </Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity onPress={() => setShowFullId((prev) => !prev)} activeOpacity={0.7}>
+        <Text className="text-center text-xs text-muted-foreground">
+          {clientId ? 'ID: ' + (showFullId ? clientId : truncatedClientId) : 'No ID'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
