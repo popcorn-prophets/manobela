@@ -23,6 +23,18 @@ class PhoneUsageMetric(BaseMetric):
         conf: float = DEFAULT_CONF,
         min_usage_duration_sec: float = DEFAULT_MIN_USAGE_DURATION_SEC,
     ):
+        """
+        Args:
+            conf: Confidence threshold for phone detection (0-1).
+            min_usage_duration_sec: Minimum duration in seconds to count as phone usage (0-inf).
+        """
+
+        # Validate inputs
+        if conf < 0 or conf > 1:
+            raise ValueError("conf must be between (0, 1).")
+        if min_usage_duration_sec <= 0:
+            raise ValueError("min_usage_duration_sec must be positive.")
+
         self.conf = conf
 
         fps = getattr(settings, "target_fps", 30)

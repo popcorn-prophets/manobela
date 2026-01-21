@@ -35,6 +35,26 @@ class GazeMetric(BaseMetric):
         min_sustained_sec: float = DEFAULT_MIN_SUSTAINED_SEC,
         smoother_alpha: float = DEFAULT_SMOOTHER_ALPHA,
     ) -> None:
+        """
+        Args:
+            horizontal_range: Range of horizontal gaze deviation (0-1, 0-1).
+            vertical_range: Range of vertical gaze deviation (0-1, 0-1).
+            min_sustained_sec: Minimum duration in seconds to count as gaze (0-inf).
+            smoother_alpha: Smoother alpha for gaze smoothing (0-1).
+        """
+
+        # Validate inputs
+        if horizontal_range[0] < 0 or horizontal_range[0] > 1:
+            raise ValueError("horizontal_range[0] must be between (0, 1).")
+        if horizontal_range[1] < 0 or horizontal_range[1] > 1:
+            raise ValueError("horizontal_range[1] must be between (0, 1).")
+        if vertical_range[0] < 0 or vertical_range[0] > 1:
+            raise ValueError("vertical_range[0] must be between (0, 1).")
+        if vertical_range[1] < 0 or vertical_range[1] > 1:
+            raise ValueError("vertical_range[1] must be between (0, 1).")
+        if min_sustained_sec <= 0:
+            raise ValueError("min_sustained_sec must be positive.")
+
         self.horizontal_range = horizontal_range
         self.vertical_range = vertical_range
 

@@ -34,8 +34,19 @@ class YawnMetric(BaseMetric):
         min_yawn_duration_sec: float = DEFAULT_MIN_YAWN_DURATION_SEC,
         smoother_alpha: float = DEFAULT_SMOOTHER_ALPHA,
     ):
-        if mar_threshold <= 0:
-            raise ValueError("mar_threshold must be positive.")
+        """
+        Args:
+            mar_threshold: MAR value above which mouth is considered open (0-1).
+            hysteresis_ratio: Ratio of close_threshold to open_threshold (0-1).
+            min_yawn_duration_sec: Minimum duration in seconds to count as yawn (0-inf).
+            smoother_alpha: Smoother alpha for MAR smoothing (0-1).
+        """
+
+        # Validate inputs
+        if mar_threshold < 0 or mar_threshold > 1:
+            raise ValueError("mar_threshold must be between (0, 1).")
+        if hysteresis_ratio < 0 or hysteresis_ratio > 1:
+            raise ValueError("hysteresis_ratio must be between (0, 1).")
         if min_yawn_duration_sec <= 0:
             raise ValueError("min_yawn_duration_sec must be positive.")
 

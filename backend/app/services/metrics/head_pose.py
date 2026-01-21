@@ -43,6 +43,24 @@ class HeadPoseMetric(BaseMetric):
         roll_threshold: float = DEFAULT_ROLL_THRESHOLD,
         min_sustained_sec: float = DEFAULT_MIN_SUSTAINED_SEC,
     ):
+        """
+        Args:
+            yaw_threshold: Threshold for yaw deviation (angle in degrees).
+            pitch_threshold: Threshold for pitch deviation (angle in degrees).
+            roll_threshold: Threshold for roll deviation (angle in degrees).
+            min_sustained_sec: Minimum duration in seconds to count as head pose (0-inf).
+        """
+
+        # Validate inputs
+        if yaw_threshold < 0 or yaw_threshold > 180:
+            raise ValueError("yaw_threshold must be between (0, 180).")
+        if pitch_threshold < 0 or pitch_threshold > 180:
+            raise ValueError("pitch_threshold must be between (0, 180).")
+        if roll_threshold < 0 or roll_threshold > 180:
+            raise ValueError("roll_threshold must be between (0, 180).")
+        if min_sustained_sec <= 0:
+            raise ValueError("min_sustained_sec must be positive.")
+
         self.yaw_threshold = yaw_threshold
         self.pitch_threshold = pitch_threshold
         self.roll_threshold = roll_threshold

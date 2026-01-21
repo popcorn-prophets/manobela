@@ -42,13 +42,25 @@ class EyeClosureMetric(BaseMetric):
     ):
         """
         Args:
-            ear_threshold: EAR value below which eyes are considered closed.
-            hysteresis_ratio: Ratio of close_threshold to open_threshold (0.0-1.0).
-            perclos_threshold: PERCLOS ratio above which alert is triggered.
-            min_eye_closed_duration_sec: Minimum duration in seconds to count as eye closed.
-            window_sec: Rolling window duration in seconds.
-            smoother_alpha: Smoother alpha for EAR smoothing.
+            ear_threshold: EAR value below which eyes are considered closed (0-1).
+            hysteresis_ratio: Ratio of close_threshold to open_threshold (0-1).
+            perclos_threshold: PERCLOS ratio above which alert is triggered (0-1).
+            min_eye_closed_duration_sec: Minimum duration in seconds to count as eye closed (0-inf).
+            window_sec: Rolling window duration in seconds (0-inf).
+            smoother_alpha: Smoother alpha for EAR smoothing (0-1).
         """
+
+        # Validate inputs
+        if ear_threshold < 0 or ear_threshold > 1:
+            raise ValueError("ear_threshold must be between (0, 1).")
+        if hysteresis_ratio < 0 or hysteresis_ratio > 1:
+            raise ValueError("hysteresis_ratio must be between (0, 1).")
+        if perclos_threshold < 0 or perclos_threshold > 1:
+            raise ValueError("perclos_threshold must be between (0, 1).")
+        if min_eye_closed_duration_sec <= 0:
+            raise ValueError("min_eye_closed_duration_sec must be positive.")
+        if window_sec <= 0:
+            raise ValueError("window_sec must be positive.")
 
         self.ear_threshold_open = ear_threshold
         self.ear_threshold_close = ear_threshold * hysteresis_ratio
