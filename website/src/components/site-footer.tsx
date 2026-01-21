@@ -1,5 +1,5 @@
-import { Heart } from "lucide-react"
-import Link from "next/link"
+import { Heart } from 'lucide-react';
+import Link from 'next/link';
 
 export function SiteFooter() {
   return (
@@ -14,16 +14,16 @@ export function SiteFooter() {
               href="https://shadcnstore.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-foreground hover:text-primary transition-colors"
-            >
+              className="font-medium text-foreground hover:text-primary transition-colors">
               ShadcnStore Team
             </Link>
           </div>
           <p className="text-xs text-muted-foreground">
-            Building beautiful, accessible blocks, templates and dashboards for modern web applications.
+            Building beautiful, accessible blocks, templates and dashboards for modern web
+            applications.
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   Shield,
@@ -11,8 +11,8 @@ import {
   Package,
   Layout,
   Crown,
-  Palette
-} from 'lucide-react'
+  Palette,
+} from 'lucide-react';
 
 const menuSections = [
   {
@@ -22,27 +22,27 @@ const menuSections = [
         title: 'Free Blocks',
         description: 'Essential UI components and sections',
         icon: Package,
-        href: '#free-blocks'
+        href: '#free-blocks',
       },
       {
         title: 'Premium Templates',
         description: 'Complete page templates and layouts',
         icon: Crown,
-        href: '#premium-templates'
+        href: '#premium-templates',
       },
       {
         title: 'Admin Dashboards',
         description: 'Full-featured dashboard solutions',
         icon: BarChart3,
-        href: '#admin-dashboards'
+        href: '#admin-dashboards',
       },
       {
         title: 'Landing Pages',
         description: 'Marketing and product landing templates',
         icon: Layout,
-        href: '#landing-pages'
-      }
-    ]
+        href: '#landing-pages',
+      },
+    ],
   },
   {
     title: 'Categories',
@@ -51,27 +51,27 @@ const menuSections = [
         title: 'E-commerce',
         description: 'Online store admin panels and components',
         icon: Building2,
-        href: '#ecommerce'
+        href: '#ecommerce',
       },
       {
         title: 'SaaS Dashboards',
         description: 'Application admin interfaces',
         icon: Rocket,
-        href: '#saas-dashboards'
+        href: '#saas-dashboards',
       },
       {
         title: 'Analytics',
         description: 'Data visualization and reporting templates',
         icon: BarChart3,
-        href: '#analytics'
+        href: '#analytics',
       },
       {
         title: 'Authentication',
         description: 'Login, signup, and user management pages',
         icon: Shield,
-        href: '#authentication'
-      }
-    ]
+        href: '#authentication',
+      },
+    ],
   },
   {
     title: 'Resources',
@@ -80,29 +80,29 @@ const menuSections = [
         title: 'Documentation',
         description: 'Integration guides and setup instructions',
         icon: Database,
-        href: '#docs'
+        href: '#docs',
       },
       {
         title: 'Component Showcase',
         description: 'Interactive preview of all components',
         icon: Palette,
-        href: '#showcase'
+        href: '#showcase',
       },
       {
         title: 'GitHub Repository',
         description: 'Open source foundation and community',
         icon: Settings,
-        href: '#github'
+        href: '#github',
       },
       {
         title: 'Design System',
         description: 'shadcn/ui standards and customization',
         icon: Zap,
-        href: '#design-system'
-      }
-    ]
-  }
-]
+        href: '#design-system',
+      },
+    ],
+  },
+];
 
 export function MegaMenu() {
   return (
@@ -121,8 +121,7 @@ export function MegaMenu() {
                 <a
                   key={item.title}
                   href={item.href}
-                  className="group block space-y-1 lg:space-y-2 hover:bg-accent rounded-md p-2 lg:p-3 -mx-2 lg:-mx-3 transition-colors my-0"
-                >
+                  className="group block space-y-1 lg:space-y-2 hover:bg-accent rounded-md p-2 lg:p-3 -mx-2 lg:-mx-3 transition-colors my-0">
                   <div className="flex items-center gap-2 lg:gap-3">
                     <item.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                     <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
@@ -139,5 +138,5 @@ export function MegaMenu() {
         ))}
       </div>
     </div>
-  )
+  );
 }

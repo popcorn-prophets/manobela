@@ -1,41 +1,35 @@
-"use client"
+'use client';
 
-import {
-  Package,
-  Download,
-  Users,
-  Star
-} from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { DotPattern } from '@/components/dot-pattern'
-
+import { Package, Download, Users, Star } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { DotPattern } from '@/components/dot-pattern';
 
 const stats = [
   {
     icon: Package,
     value: '500+',
     label: 'Components',
-    description: 'Ready-to-use blocks'
+    description: 'Ready-to-use blocks',
   },
   {
     icon: Download,
     value: '25K+',
     label: 'Downloads',
-    description: 'Trusted worldwide'
+    description: 'Trusted worldwide',
   },
   {
     icon: Users,
     value: '10K+',
     label: 'Developers',
-    description: 'Active community'
+    description: 'Active community',
   },
   {
     icon: Star,
     value: '4.9',
     label: 'Rating',
-    description: 'User satisfaction'
-  }
-]
+    description: 'User satisfaction',
+  },
+];
 
 export function StatsSection() {
   return (
@@ -50,8 +44,7 @@ export function StatsSection() {
           {stats.map((stat, index) => (
             <Card
               key={index}
-              className="text-center bg-background/60 backdrop-blur-sm border-border/50 py-0"
-            >
+              className="text-center bg-background/60 backdrop-blur-sm border-border/50 py-0">
               <CardContent className="p-6">
                 <div className="flex justify-center mb-4">
                   <div className="p-3 bg-primary/10 rounded-xl">
@@ -59,9 +52,7 @@ export function StatsSection() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-2xl sm:text-3xl font-bold text-foreground">
-                    {stat.value}
-                  </h3>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</h3>
                   <p className="font-semibold text-foreground">{stat.label}</p>
                   <p className="text-sm text-muted-foreground">{stat.description}</p>
                 </div>
@@ -71,5 +62,5 @@ export function StatsSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

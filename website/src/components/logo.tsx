@@ -1,20 +1,19 @@
-import * as React from "react"
+import * as React from 'react';
 
 interface LogoProps extends React.SVGProps<SVGSVGElement> {
-  size?: number
+  size?: number;
 }
 
 export function Logo({ size = 24, className, ...props }: LogoProps) {
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 32 32" 
-      fill="none" 
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      {...props}
-    >
+      {...props}>
       <path
         d="M26 24.75C26.4142 24.75 26.75 24.4142 26.75 24C26.75 23.5858 26.4142 23.25 26 23.25V24.75ZM26 23.25H11V24.75H26V23.25ZM8.75 21V15H7.25V21H8.75ZM11 23.25C9.75736 23.25 8.75 22.2426 8.75 21H7.25C7.25 23.0711 8.92893 24.75 11 24.75V23.25Z"
         fill="currentColor"
@@ -40,5 +39,5 @@ export function Logo({ size = 24, className, ...props }: LogoProps) {
       <circle cx="13.1" cy="26.1" r="1.7" stroke="currentColor" />
       <circle cx="22.1" cy="26.1" r="1.7" stroke="currentColor" />
     </svg>
-  )
+  );
 }

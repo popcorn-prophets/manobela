@@ -1,13 +1,13 @@
-"use client"
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -15,56 +15,59 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Mail, MessageCircle, Github, BookOpen } from 'lucide-react'
+} from '@/components/ui/form';
+import { Mail, MessageCircle, Github, BookOpen } from 'lucide-react';
 
 const contactFormSchema = z.object({
   firstName: z.string().min(2, {
-    message: "First name must be at least 2 characters.",
+    message: 'First name must be at least 2 characters.',
   }),
   lastName: z.string().min(2, {
-    message: "Last name must be at least 2 characters.",
+    message: 'Last name must be at least 2 characters.',
   }),
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: 'Please enter a valid email address.',
   }),
   subject: z.string().min(5, {
-    message: "Subject must be at least 5 characters.",
+    message: 'Subject must be at least 5 characters.',
   }),
   message: z.string().min(10, {
-    message: "Message must be at least 10 characters.",
+    message: 'Message must be at least 10 characters.',
   }),
-})
+});
 
 export function ContactSection() {
   const form = useForm<z.infer<typeof contactFormSchema>>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      subject: "",
-      message: "",
+      firstName: '',
+      lastName: '',
+      email: '',
+      subject: '',
+      message: '',
     },
-  })
+  });
 
   function onSubmit(values: z.infer<typeof contactFormSchema>) {
     // Here you would typically send the form data to your backend
-    console.log(values)
+    console.log(values);
     // You could also show a success message or redirect
-    form.reset()
+    form.reset();
   }
 
   return (
     <section id="contact" className="py-24 sm:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center mb-16">
-          <Badge variant="outline" className="mb-4">Get In Touch</Badge>
+          <Badge variant="outline" className="mb-4">
+            Get In Touch
+          </Badge>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
             Need help or have questions?
           </h2>
           <p className="text-lg text-muted-foreground">
-            Our team is here to help you get the most out of ShadcnStore. Choose the best way to reach out to us.
+            Our team is here to help you get the most out of ShadcnStore. Choose the best way to
+            reach out to us.
           </p>
         </div>
 
@@ -83,7 +86,10 @@ export function ContactSection() {
                   Join our active community for quick help and discussions with other developers.
                 </p>
                 <Button variant="outline" size="sm" className="cursor-pointer" asChild>
-                  <a href="https://discord.com/invite/XEQhPc9a6p" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://discord.com/invite/XEQhPc9a6p"
+                    target="_blank"
+                    rel="noopener noreferrer">
                     Join Discord
                   </a>
                 </Button>
@@ -102,7 +108,10 @@ export function ContactSection() {
                   Report bugs, request features, or contribute to our open source repository.
                 </p>
                 <Button variant="outline" size="sm" className="cursor-pointer" asChild>
-                  <a href="https://github.com/silicondeck/shadcn-dashboard-landing-template/issues" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://github.com/silicondeck/shadcn-dashboard-landing-template/issues"
+                    target="_blank"
+                    rel="noopener noreferrer">
                     View on GitHub
                   </a>
                 </Button>
@@ -121,9 +130,7 @@ export function ContactSection() {
                   Browse our comprehensive guides, tutorials, and component documentation.
                 </p>
                 <Button variant="outline" size="sm" className="cursor-pointer" asChild>
-                  <a href="#">
-                    View Docs
-                  </a>
+                  <a href="#">View Docs</a>
                 </Button>
               </CardContent>
             </Card>
@@ -189,7 +196,10 @@ export function ContactSection() {
                         <FormItem>
                           <FormLabel>Subject</FormLabel>
                           <FormControl>
-                            <Input placeholder="Component request, bug report, general inquiry..." {...field} />
+                            <Input
+                              placeholder="Component request, bug report, general inquiry..."
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -224,5 +234,5 @@ export function ContactSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }
