@@ -29,6 +29,7 @@
     "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.12",
     "expo-dev-client": "~6.0.20",
+    "expo-haptics": "~15.0.8",
     "expo-linking": "~8.0.10",
     "expo-speech": "~14.0.8",
     "expo-router": "~6.0.21",

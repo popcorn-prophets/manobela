@@ -1,8 +1,9 @@
 import { MetricsOutput } from '@/types/metrics';
-import { AlertConfig, AlertState } from '@/types/alerts';
+import { AlertConfig, AlertPriority, AlertState } from '@/types/alerts';
 import { ALERT_CONFIGS } from './alert-config';
 import { evaluateAlertConditions } from './alert-evaluator';
 import { speak, stopSpeaking } from '../speech';
+import { triggerHaptic } from '../hapticts';
 
 export const DEFAULT_STARTUP_DELAY_MS = 4_000;
 
@@ -104,6 +105,12 @@ export class AlertManager {
     state.isSpeaking = true;
     this.currentAlert = config;
 
+    if (config.priority === AlertPriority.CRITICAL || config.priority === AlertPriority.HIGH) {
+      triggerHaptic({ type: 'warning' });
+    } else {
+      triggerHaptic({ type: 'impact' });
+    }
+
     speak(config.message, {
       onDone: () => this.clearAlertState(config, state),
       onStopped: () => this.clearAlertState(config, state),
@@ -142,7 +149,6 @@ export class AlertManager {
   start() {
     this.currentAlert = null;
     this.sessionStartedAt = Date.now();
-    this.hasPlayedWelcome = false;
     this.playWelcomeMessage();
   }
 
