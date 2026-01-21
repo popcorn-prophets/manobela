@@ -391,45 +391,30 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
-      if (isOfflineRef.current) {
+      const offlineNow = state.isConnected === false || state.isInternetReachable === false;
+
+      isOfflineRef.current = offlineNow;
+      setIsOffline(offlineNow);
+
+      // Only run teardown + error once per offline transition
+      if (offlineNow && !wasOfflineRef.current) {
+        wasOfflineRef.current = true;
+
         setConnectionStatus('closed');
         setErrorState(mapNetworkErrorMessage('no internet'), 'No internet connection');
-        return;
-      }
-      const isOffline = state.isConnected === false || state.isInternetReachable === false;
-      if (isOffline && !wasOfflineRef.current) {
-        wasOfflineRef.current = isOffline;
-        setIsOffline(isOffline);
-
-        if (isOffline && !wasOfflineRef.current) {
-          wasOfflineRef.current = true;
-          // FORCE UI to go back to idle/closed immediately
-          setConnectionStatus('closed');
-          setErrorState(mapNetworkErrorMessage('no internet'), 'No internet connection');
-        }
 
         transportRef.current?.disconnect();
         transportRef.current = null;
+
         const pc = pcRef.current;
         if (pc) {
-          try {
-            pc.close();
-          } catch {}
-          pcRef.current = null;
+          pc.close();
         }
-
-        // LAST resor: exit app on android
-        if (Platform.OS == 'android' && !hasExitedRef.current) {
-          hasExitedRef.current = true;
-        }
-
-        setTimeout(() => {
-          BackHandler.exitApp();
-        }, 2500); // Close app within 2.5s
       }
-      if (!isOffline && wasOfflineRef.current) {
+
+      // Reset transition flag when back online
+      if (!offlineNow && wasOfflineRef.current) {
         wasOfflineRef.current = false;
-        hasExitedRef.current = false;
       }
     });
 
