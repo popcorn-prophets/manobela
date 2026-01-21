@@ -62,9 +62,12 @@ export class WebSocketTransport implements SignalingTransport {
             ? 'Unable to reach the signaling server. Please check your connection or try again later.'
             : rawMessage;
 
-        console.error('WebSocket error:', e);
+        const error = new Error(friendlyMessage);
+        (error as { cause?: unknown }).cause = rawMessage || e;
+
+        console.error('Websocket error:', e )
         this.status = 'closed';
-        reject(new Error(friendlyMessage));
+        reject(error);
       };
 
       // Remote or local close

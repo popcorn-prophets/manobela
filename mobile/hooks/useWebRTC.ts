@@ -28,6 +28,7 @@ interface UseWebRTCReturn {
   connectionStatus: RTCPeerConnectionState;
   clientId: string | null;
   error: string | null;
+  errorDetails: string | null // implement in return
 
   // Starts signaling + peer connection negotiation
   startConnection: () => void;
@@ -64,14 +65,23 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
   // Last fatal error encountered anywhere in the stack
   const [error, setError] = useState<string | null>(null);
 
+  // --- Specified error block ---
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const setErrorState = useCallback((message: string, rawMessage?: string | null) => {
+    const normalizedMessage = message || null;
+    setError(normalizedMessage);
+    setErrorDetails(normalizedMessage ? rawMessage ?? message : null);
+  }, []);
+
   // Thin wrapper to centralize signaling send
   const sendSignalingMessage = useCallback((msg: SignalingMessage) => {
     try {
       transportRef.current?.send(msg);
     } catch (err: any) {
-      setError(err.message || 'Failed to send signaling message');
+      setErrorState(err.message || 'Failed to send signaling message', err?.cause?.toString?.());
     }
-  }, []);
+  }, [setErrorState]);
+  // ------ Specified Error Block end ------
 
   // Allow external subscribers to observe raw signaling traffic
   const onSignalingMessage = useCallback((handler: (msg: SignalingMessage) => void) => {
@@ -123,20 +133,20 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
       }
     } catch (err: any) {
       console.error('Error handling signaling message:', err);
-      setError(`Signaling error: ${err.message}`);
+      setErrorState(`Signaling error: ${err.message}`, err?.cause?.toString?.());
     }
 
     signalingHandlers.current.forEach((cb) => cb(msg));
-  }, []);
+  }, [setErrorState]);
 
   // Serialize and send JSON messages over the RTCDataChannel
   const sendDataMessage = useCallback((msg: any) => {
     try {
       dataChannelRef.current?.send(JSON.stringify(msg));
     } catch (err: any) {
-      setError(err.message || 'Failed to send data message');
+      setErrorState(err.message || 'Failed to send data message', err?.cause?.toString?.());
     }
-  }, []);
+  }, [setErrorState]);
 
   // Allow external subscribers to observe raw data channel traffic
   const onDataMessage = useCallback((handler: (msg: any) => void) => {
@@ -149,9 +159,9 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
       dataChannelHandlers.current.forEach((cb) => cb(msg));
     } catch (err: any) {
       console.error('Error handling data message:', err);
-      setError(`Data error: ${err.message}`);
+      setErrorState(`Data error: ${err.message}`, err?.cause?.toString?.());
     }
-  }, []);
+  }, [setErrorState]);
 
   /**
    * Initializes WebSocket-based signaling.
@@ -235,7 +245,7 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
         setConnectionStatus(pc.connectionState);
 
         if (pc.connectionState === 'failed') {
-          setError('WebRTC connection failed');
+          setErrorState('WebRTC connection failed');
         }
       };
 
@@ -263,12 +273,12 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
     try {
       // Ensure a media stream is available
       if (!stream) {
-        setError('No media stream available');
+        setErrorState('No media stream available');
         return;
       }
 
       // Reset status and error
-      setError('');
+      setErrorState('');
       setConnectionStatus('connecting');
       console.log('Starting WebRTC connection...');
 
@@ -312,10 +322,10 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
       console.log('Offer sent, waiting for answer...');
     } catch (err: any) {
       console.error('Connection error:', err);
-      setError(`Connection error: ${err.message}`);
+      setErrorState(`Connection error: ${err.message}`, err?.cause?.toString?.());
       setConnectionStatus('failed');
     }
-  }, [stream, initPeerConnection, initTransport, initDataChannel, sendSignalingMessage]);
+  }, [stream, initPeerConnection, initTransport, initDataChannel, sendSignalingMessage, setErrorState]);
 
   /**
    * Full teardown.
@@ -334,8 +344,8 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
 
     setConnectionStatus('closed');
     setClientId(null);
-    setError('');
-  }, []);
+    setErrorState('');
+  }, [setErrorState]);
 
   const transportStatus: TransportStatus = transportRef.current?.status ?? 'closed';
 
@@ -344,6 +354,7 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
     connectionStatus,
     clientId,
     error,
+    errorDetails,
     startConnection,
     cleanup,
     sendSignalingMessage,

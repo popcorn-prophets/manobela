@@ -54,7 +54,7 @@ export default function SettingsScreen() {
       apiBaseUrl: trimmedApiBaseUrl,
       wsBaseUrl: trimmedWsBaseUrl,
     });
-    setStatusMessage('API URLs saved.');
+    setStatusMessage('API URLs saved. \nPlease Restart the App.');
   };
 
   // if (changed) {

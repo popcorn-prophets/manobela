@@ -22,6 +22,7 @@ interface UseMonitoringSessionReturn {
   connectionStatus: string;
   error: string | null;
   hasCamera: boolean;
+  errorDetails: string | null;
   start: () => void;
   stop: () => void;
 }
@@ -43,6 +44,7 @@ export const useMonitoringSession = ({
     connectionStatus,
     onDataMessage,
     error,
+    errorDetails,
   } = useWebRTC({ url, stream });
 
   // Tracks session lifecycle
@@ -102,6 +104,7 @@ export const useMonitoringSession = ({
     hasCamera: stream !== null,
     inferenceData,
     error,
+    errorDetails,
     start,
     stop,
   };
