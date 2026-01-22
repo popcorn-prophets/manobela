@@ -1,4 +1,5 @@
 import { ScrollView, View } from 'react-native';
+import { Stack } from 'expo-router';
 import {
   Accordion,
   AccordionContent,
@@ -11,6 +12,7 @@ import { GUIDE_SECTIONS } from './guide-content';
 export default function GuideScreen() {
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="p-4 gap-4">
+      <Stack.Screen options={{ title: 'Guide' }} />
       <Text className="mb-6 text-muted-foreground">
         Learn how Manobela works, what each metric means, and how to use the app during your drives.
       </Text>
