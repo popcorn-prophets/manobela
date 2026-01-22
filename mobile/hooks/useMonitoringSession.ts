@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useWebRTC } from './useWebRTC';
 import { MediaStream } from 'react-native-webrtc';
+import { sessionLogger } from '@/services/logging/session-logger';
 import { InferenceData } from '@/types/inference';
 
 export type SessionState = 'idle' | 'starting' | 'active' | 'stopping';
@@ -104,25 +105,37 @@ export const useMonitoringSession = ({
     onDataMessage(handler);
   }, [onDataMessage]);
 
+  // Log metrics
+  useEffect(() => {
+    if (sessionState === 'active') {
+      sessionLogger.logMetrics(inferenceData);
+    }
+  }, [sessionState, inferenceData]);
+
   // Starts the monitoring session.
-  const start = useCallback(() => {
+  const start = useCallback(async () => {
     if (sessionState !== 'idle') return;
 
     try {
       setSessionState('starting');
       startConnection();
+
+      await sessionLogger.startSession(clientId);
     } catch (err) {
       console.error('Failed to start connection:', err);
       setSessionState('idle');
     }
-  }, [sessionState, startConnection]);
+  }, [sessionState, startConnection, clientId]);
 
   // Stops the monitoring session.
-  const stop = useCallback(() => {
+  const stop = useCallback(async () => {
     if (sessionState !== 'active') return;
 
     setSessionState('stopping');
     cleanup();
+
+    await sessionLogger.endSession();
+
     setSessionState('idle');
     setInferenceData(null);
   }, [sessionState, cleanup]);
