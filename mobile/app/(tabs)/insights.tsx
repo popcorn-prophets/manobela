@@ -2,14 +2,15 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, FlatList, Alert } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-
-import { db } from '@/db/client';
 import { sessions, metrics } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { sessionLogger } from '@/services/logging/session-logger';
+import { useDatabase } from '@/components/database-provider';
 
 export default function InsightsScreen() {
+  const db = useDatabase();
+
   /**
    * Explicit revalidation trigger
    */
