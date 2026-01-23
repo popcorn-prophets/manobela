@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useWebRTC } from './useWebRTC';
 import { MediaStream } from 'react-native-webrtc';
 import { sessionLogger } from '@/services/logging/session-logger';
@@ -52,7 +52,10 @@ export const useMonitoringSession = ({
   // Tracks session lifecycle
   const [sessionState, setSessionState] = useState<SessionState>('idle');
 
-  // Stores latest data
+  // Use a ref to avoid re-rendering on every message
+  const latestInferenceRef = useRef<InferenceData | null>(null);
+
+  // Only update state when UI needs it
   const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
   const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
   const [sessionDurationMs, setSessionDurationMs] = useState(0);
@@ -60,20 +63,20 @@ export const useMonitoringSession = ({
   // Sync session state with WebRTC connection
   useEffect(() => {
     if (connectionStatus === 'failed') {
-      setSessionState('idle');
-      return;
-    }
-
-    if (connectionStatus === 'closed' && sessionState === 'stopping') {
-      setSessionState('idle');
+      (async () => {
+        await sessionLogger.endSession();
+        setSessionState('idle');
+      })();
       return;
     }
 
     if (connectionStatus === 'connected' && sessionState === 'starting') {
       if (!clientId) return;
 
-      sessionLogger.startSession(clientId);
-      setSessionState('active');
+      (async () => {
+        await sessionLogger.startSession(clientId);
+        setSessionState('active');
+      })();
     }
   }, [connectionStatus, sessionState, clientId]);
 
@@ -108,20 +111,30 @@ export const useMonitoringSession = ({
   // Subscribe to data channel messages
   useEffect(() => {
     const handler = (msg: any) => {
-      setInferenceData(msg);
+      // Update ref for logging (non-rendering)
+      latestInferenceRef.current = msg;
+
+      // Update state only if UI is active and needs it
+      if (sessionState === 'active') {
+        setInferenceData(msg);
+      }
     };
 
     onDataMessage(handler);
-  }, [onDataMessage]);
+  }, [onDataMessage, sessionState]);
 
   // Log metrics
   useEffect(() => {
-    if (sessionState === 'active') {
-      sessionLogger.logMetrics(inferenceData);
-    }
-  }, [sessionState, inferenceData]);
+    if (sessionState !== 'active') return;
 
-  // Starts the monitoring session.
+    const interval = setInterval(() => {
+      if (!sessionLogger.getCurrentSessionId()) return;
+      sessionLogger.logMetrics(latestInferenceRef.current);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [sessionState]);
+
   const start = useCallback(async () => {
     if (sessionState !== 'idle') return;
 
@@ -145,6 +158,7 @@ export const useMonitoringSession = ({
 
     setSessionState('idle');
     setInferenceData(null);
+    latestInferenceRef.current = null;
   }, [sessionState, cleanup]);
 
   return {
