@@ -1,12 +1,5 @@
 import { Tabs } from 'expo-router';
-import {
-  ChartScatter,
-  NotepadText,
-  Aperture,
-  Bolt,
-  HardDriveUpload,
-  Map,
-} from 'lucide-react-native';
+import { ChartScatter, Aperture, Bolt, HardDriveUpload, Map } from 'lucide-react-native';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function TabLayout() {
@@ -25,7 +18,7 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen
-        name="insights"
+        name="insights/index"
         options={{
           title: 'Insights',
           tabBarIcon: ({ color, size }) => <ChartScatter color={color} size={size} />,
@@ -63,8 +56,10 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Bolt color={color} size={size} />,
         }}
       />
+
       {/* Hidden compartments from tab navigation: */}
       <Tabs.Screen name="settings/api-urls" options={{ href: null }} />
+      <Tabs.Screen name="insights/session/[sessionId]" options={{ href: null }} />
     </Tabs>
   );
 }
