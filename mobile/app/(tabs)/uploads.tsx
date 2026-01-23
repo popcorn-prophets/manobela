@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, ActivityIndicator, Alert, ScrollView, Pressable, Image } from 'react-native';
 
 import { useMemo, useState } from 'react';
 
@@ -34,6 +34,7 @@ type VideoFrameResult = {
   face_landmarks: number[] | null;
   object_detections: ObjectDetection[] | null;
   metrics: Record<string, unknown> | null;
+  thumbnail_base64: string | null;
 };
 
 type ObjectDetection = {
@@ -63,6 +64,15 @@ const formatJsonPreview = (value: unknown, maxLength = 240) => {
   if (!json) return 'null';
   if (json.length <= maxLength) return json;
   return `${json.slice(0, maxLength)}...`;
+};
+
+const formatJsonFull = (value: unknown) => {
+  if (value === null || value === undefined) return 'null';
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return 'null';
+  }
 };
 
 const parseTimestampSeconds = (timestamp: string) => {
@@ -167,7 +177,8 @@ const aggregateMetricsObject = (objects: Record<string, unknown>[]) => {
       continue;
     }
     const arrays = values.filter(
-      (value): value is number[] => Array.isArray(value) && value.every((item) => typeof item === 'number')
+      (value): value is number[] =>
+        Array.isArray(value) && value.every((item) => typeof item === 'number')
     );
     if (arrays.length === values.length) {
       result[key] = aggregateNumericArray(arrays);
@@ -191,6 +202,9 @@ const aggregateMetrics = (frames: VideoFrameResult[]) => {
   return aggregateMetricsObject(metricsList);
 };
 
+const pickThumbnail = (frames: VideoFrameResult[]) =>
+  frames.find((frame) => frame.thumbnail_base64)?.thumbnail_base64 ?? null;
+
 export default function UploadsScreen() {
   const { settings } = useSettings();
   const apiBaseUrl = useMemo(
@@ -204,6 +218,7 @@ export default function UploadsScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VideoProcessingResponse | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
   const groupedFrames = useMemo(() => {
     if (!result?.frames?.length) return [];
     const buckets = new Map<number, VideoFrameResult[]>();
@@ -230,6 +245,7 @@ export default function UploadsScreen() {
           face_landmarks: averageFaceLandmarks(frames),
           object_detections: mergeUniqueDetections(frames),
           metrics: aggregateMetrics(frames),
+          thumbnail_base64: pickThumbnail(frames),
         },
       }));
   }, [result]);
@@ -412,14 +428,23 @@ export default function UploadsScreen() {
               {groupedFrames.map((group) => (
                 <View
                   key={`group-${group.bucketIndex}`}
-                  className="rounded-md border border-border bg-muted/30 p-3"
-                >
-                  <Text className="text-sm font-semibold">
-                    {group.startSec}s - {group.endSec}s
-                  </Text>
-                  <Text className="text-xs text-muted-foreground">
-                    Frames: {group.frames.length}
-                  </Text>
+                  className="rounded-md border border-border bg-muted/30 p-3">
+                  <Pressable
+                    onPress={() =>
+                      setExpandedGroups((prev) => ({
+                        ...prev,
+                        [group.bucketIndex]: !prev[group.bucketIndex],
+                      }))
+                    }
+                    className="gap-1">
+                    <Text className="text-sm font-semibold">
+                      {group.startSec}s - {group.endSec}s
+                    </Text>
+                    <Text className="text-xs text-muted-foreground">
+                      Frames: {group.frames.length} -{' '}
+                      {expandedGroups[group.bucketIndex] ? 'Hide details' : 'Show details'}
+                    </Text>
+                  </Pressable>
                   <View className="mt-2 gap-1">
                     <Text className="text-xs text-muted-foreground">
                       Resolution:{' '}
@@ -439,6 +464,23 @@ export default function UploadsScreen() {
                     <Text className="text-xs text-muted-foreground">
                       Metrics: {formatJsonPreview(group.aggregate.metrics)}
                     </Text>
+                    {expandedGroups[group.bucketIndex] ? (
+                      <View className="mt-2 gap-2">
+                        {group.aggregate.thumbnail_base64 ? (
+                          <Image
+                            source={{
+                              uri: `data:image/jpeg;base64,${group.aggregate.thumbnail_base64}`,
+                            }}
+                            className="h-40 w-full rounded-md"
+                            resizeMode="cover"
+                          />
+                        ) : null}
+                        <Text className="font-mono text-xs text-muted-foreground">
+                          Metrics (full):{'\n'}
+                          {formatJsonFull(group.aggregate.metrics)}
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
                 </View>
               ))}

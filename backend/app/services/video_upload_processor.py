@@ -1,3 +1,4 @@
+import base64
 import logging
 from dataclasses import dataclass
 
@@ -14,6 +15,7 @@ from app.services.smoother import SequenceSmoother
 logger = logging.getLogger(__name__)
 
 MAX_WIDTH = 480
+THUMBNAIL_JPEG_QUALITY = 70
 
 
 @dataclass
@@ -30,6 +32,14 @@ def format_timestamp(seconds: float) -> str:
     minutes = (total_seconds % 3600) // 60
     secs = total_seconds % 60
     return f"{hours:02d}:{minutes:02d}:{secs:02d}.{ms:03d}"
+
+
+def encode_frame_thumbnail(frame) -> str | None:
+    encode_params = [int(cv2.IMWRITE_JPEG_QUALITY), THUMBNAIL_JPEG_QUALITY]
+    success, buffer = cv2.imencode(".jpg", frame, encode_params)
+    if not success:
+        return None
+    return base64.b64encode(buffer.tobytes()).decode("ascii")
 
 
 def process_uploaded_video(
@@ -113,6 +123,13 @@ def process_uploaded_video(
                 face_landmarks=face_landmarks, object_detections=object_detections
             )
             metrics = metric_manager.update(frame_context)
+            has_alert = any(
+                key.endswith("_alert") and isinstance(value, bool) and value
+                for key, value in metrics.items()
+            )
+            thumbnail_base64 = (
+                encode_frame_thumbnail(frame) if has_alert and smoothed_landmarks else None
+            )
 
             frames.append(
                 VideoFrameResult(
@@ -122,6 +139,7 @@ def process_uploaded_video(
                     face_landmarks=smoothed_landmarks if face_landmarks else None,
                     object_detections=object_detections or None,
                     metrics=metrics,
+                    thumbnail_base64=thumbnail_base64,
                 )
             )
 

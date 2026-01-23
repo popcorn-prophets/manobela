@@ -16,6 +16,7 @@ class VideoFrameResult(BaseModel):
     face_landmarks: list[float] | None = None
     object_detections: list[ObjectDetection] | None = None
     metrics: MetricsOutput | None = None
+    thumbnail_base64: str | None = None
 
 
 class VideoMetadata(BaseModel):
