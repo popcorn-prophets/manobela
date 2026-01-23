@@ -57,14 +57,18 @@ export default function InsightsScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          await sessionLogger.endSession();
-          await sessionLogger.reset();
+          try {
+            await db.delete(metrics);
+            await db.delete(sessions);
 
-          await db.delete(metrics);
-          await db.delete(sessions);
+            await sessionLogger.endSession();
+            await sessionLogger.reset();
 
-          // Force revalidation
-          setRefreshKey((k) => k + 1);
+            setRefreshKey((k) => k + 1);
+          } catch (error) {
+            console.error('Failed to clear data:', error);
+            Alert.alert('Error', 'Failed to clear data. Please try again.');
+          }
         },
       },
     ]);
