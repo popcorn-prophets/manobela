@@ -1,9 +1,12 @@
+import { View , ActivityIndicator, Alert, ScrollView} from 'react-native';
+
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, View } from 'react-native';
+
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+
 import { useSettings } from '@/hooks/useSettings';
 
 type SelectedVideo = {
@@ -62,7 +65,7 @@ export default function UploadsScreen() {
     }
 
     const selection = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Videos],
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: false,
       quality: 1,
     });
@@ -74,7 +77,7 @@ export default function UploadsScreen() {
     const asset = selection.assets[0];
     const name = asset.fileName ?? asset.uri.split('/').pop() ?? 'upload.mp4';
     const info = await FileSystem.getInfoAsync(asset.uri);
-    const sizeBytes = asset.fileSize ?? (info.exists ? (info.size ?? 0) : 0);
+    const sizeBytes = asset.fileSize ?? (info.exists ? info.size ?? 0 : 0);
     const durationMs = asset.duration ?? undefined;
     const mimeType = asset.mimeType ?? 'video/mp4';
 
@@ -101,11 +104,14 @@ export default function UploadsScreen() {
     setResult(null);
 
     const formData = new FormData();
-    formData.append('video', {
-      uri: selectedVideo.uri,
-      name: selectedVideo.name,
-      type: selectedVideo.mimeType,
-    } as unknown as Blob);
+    formData.append(
+      'video',
+      {
+        uri: selectedVideo.uri,
+        name: selectedVideo.name,
+        type: selectedVideo.mimeType,
+      } as unknown as Blob
+    );
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${apiBaseUrl}/driver-monitoring/process-video`);
@@ -155,75 +161,79 @@ export default function UploadsScreen() {
 
   return (
     <ScrollView className="flex-1 px-4 py-6">
-      <Text variant="h3" className="mb-2">
-        Uploads
-      </Text>
-      <Text className="text-sm text-muted-foreground">
-        Upload a recorded drive to run the same monitoring metrics as a live session.
-      </Text>
+    <Text variant="h3" className="mb-2">
+      Uploads
+    </Text>
+    <Text className="text-sm text-muted-foreground">
+      Upload a recorded drive to run the same monitoring metrics as a live session.
+    </Text>
 
-      <View className="mt-6 gap-3">
-        <Button onPress={handleSelectVideo} variant="secondary">
-          <Text>Select Video</Text>
-        </Button>
+    <View className="mt-6 gap-3">
+      <Button onPress={handleSelectVideo} variant="secondary">
+        <Text>Select Video</Text>
+      </Button>
 
-        {selectedVideo ? (
-          <View className="rounded-md border border-border bg-muted/40 p-4">
-            <Text className="font-semibold">{selectedVideo.name}</Text>
-            <Text className="text-sm text-muted-foreground">
-              Duration: {formatDuration(selectedVideo.durationMs)}
-            </Text>
-            <Text className="text-sm text-muted-foreground">
-              Size: {formatBytes(selectedVideo.sizeBytes)}
-            </Text>
-            {selectedVideo.sizeBytes > 50 * 1024 * 1024 ? (
-              <Text className="mt-1 text-sm text-amber-500">
-                Large file detected. Consider compressing for faster uploads.
-              </Text>
-            ) : null}
-          </View>
-        ) : (
+      {selectedVideo ? (
+        <View className="rounded-md border border-border bg-muted/40 p-4">
+          <Text className="font-semibold">{selectedVideo.name}</Text>
           <Text className="text-sm text-muted-foreground">
-            No video selected yet. Choose one to preview details before uploading.
+            Duration: {formatDuration(selectedVideo.durationMs)}
           </Text>
-        )}
-
-        <Button onPress={handleUpload} disabled={!selectedVideo || isUploading}>
-          <Text>{isUploading ? 'Uploading...' : 'Upload & Analyze'}</Text>
-        </Button>
-
-        {isUploading ? (
-          <Text className="text-sm text-muted-foreground">Upload progress: {uploadProgress}%</Text>
-        ) : null}
-
-        {isProcessing ? (
-          <View className="flex-row items-center gap-2">
-            <ActivityIndicator />
-            <Text className="text-sm text-muted-foreground">
-              Upload complete. Processing video frames...
+          <Text className="text-sm text-muted-foreground">
+            Size: {formatBytes(selectedVideo.sizeBytes)}
+          </Text>
+          {selectedVideo.sizeBytes > 50 * 1024 * 1024 ? (
+            <Text className="mt-1 text-sm text-amber-500">
+              Large file detected. Consider compressing for faster uploads.
             </Text>
-          </View>
-        ) : null}
+          ) : null}
+        </View>
+      ) : (
+        <Text className="text-sm text-muted-foreground">
+          No video selected yet. Choose one to preview details before uploading.
+        </Text>
+      )}
 
-        {error ? <Text className="text-sm text-destructive">Error: {error}</Text> : null}
+      <Button onPress={handleUpload} disabled={!selectedVideo || isUploading}>
+        <Text>{isUploading ? 'Uploading...' : 'Upload & Analyze'}</Text>
+      </Button>
 
-        {result ? (
-          <View className="rounded-md border border-border bg-background p-4">
-            <Text className="font-semibold">Processing Summary</Text>
-            <Text className="text-sm text-muted-foreground">
-              Duration: {result.video_metadata.duration_sec.toFixed(1)}s
-            </Text>
-            <Text className="text-sm text-muted-foreground">
-              Frames processed: {result.video_metadata.total_frames_processed}
-            </Text>
-            <Text className="text-sm text-muted-foreground">FPS: {result.video_metadata.fps}</Text>
-            <Text className="text-sm text-muted-foreground">
-              Resolution: {result.video_metadata.resolution.width} x{' '}
-              {result.video_metadata.resolution.height}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-    </ScrollView>
-  );
+      {isUploading ? (
+        <Text className="text-sm text-muted-foreground">Upload progress: {uploadProgress}%</Text>
+      ) : null}
+
+      {isProcessing ? (
+        <View className="flex-row items-center gap-2">
+          <ActivityIndicator />
+          <Text className="text-sm text-muted-foreground">
+            Upload complete. Processing video frames...
+          </Text>
+        </View>
+      ) : null}
+
+      {error ? (
+        <Text className="text-sm text-destructive">Error: {error}</Text>
+      ) : null}
+
+      {result ? (
+        <View className="rounded-md border border-border bg-background p-4">
+          <Text className="font-semibold">Processing Summary</Text>
+          <Text className="text-sm text-muted-foreground">
+            Duration: {result.video_metadata.duration_sec.toFixed(1)}s
+          </Text>
+          <Text className="text-sm text-muted-foreground">
+            Frames processed: {result.video_metadata.total_frames_processed}
+          </Text>
+          <Text className="text-sm text-muted-foreground">
+            FPS: {result.video_metadata.fps}
+          </Text>
+          <Text className="text-sm text-muted-foreground">
+            Resolution: {result.video_metadata.resolution.width} x{' '}
+            {result.video_metadata.resolution.height}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  </ScrollView>
+);
 }
