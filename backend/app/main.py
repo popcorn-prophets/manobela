@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from app.core.config import settings
 from app.core.lifespan import lifespan
@@ -30,6 +31,11 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(webrtc_router)
     app.include_router(driver_monitoring_router)
+
+    # Redirect "/" to docs
+    @app.get("/", include_in_schema=False)
+    def root():
+        return RedirectResponse(url="/docs")
 
     return app
 
