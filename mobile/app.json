@@ -77,8 +77,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "3db1ac7d-270a-435f-b937-7a56d6381426"
+        "projectId": "c2b27379-cd86-4386-9804-e39622efb5d4"
       }
-    }
+    },
+    "owner": "popcorn-prophets-upv"
   }
 }
