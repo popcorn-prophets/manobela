@@ -49,7 +49,7 @@ export function LandingNavbar() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-2">
-          <Link href="#" className="flex items-center space-x-2 cursor-pointer">
+          <Link href="/" className="flex items-center space-x-2 cursor-pointer">
             <Logo size={32} />
             <span className="font-bold">Manobela</span>
           </Link>
