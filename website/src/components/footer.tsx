@@ -10,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Logo } from '@/components/logo';
 import { Github, Twitter, Linkedin, Youtube, Heart } from 'lucide-react';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+
 const newsletterSchema = z.object({
   email: z.string().email({
     message: 'Please enter a valid email address.',
@@ -20,7 +22,7 @@ const footerLinks = {
   product: [
     { name: 'Features', href: '/#features' },
     { name: 'Pricing', href: '/#pricing' },
-    { name: 'API', href: '/#api' },
+    { name: 'API', href: `${apiUrl}` },
     { name: 'Documentation', href: '/#docs' },
   ],
   company: [

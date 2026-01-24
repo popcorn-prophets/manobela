@@ -15,6 +15,8 @@ import { Logo } from '@/components/logo';
 import { ModeToggle } from '@/components/mode-toggle';
 import { useTheme } from '@/hooks/use-theme';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+
 const navigationItems = [
   { name: 'Home', href: '/#hero' },
   { name: 'Features', href: '/#features' },
@@ -22,6 +24,7 @@ const navigationItems = [
   { name: 'Pricing', href: '/#pricing' },
   { name: 'FAQ', href: '/#faq' },
   { name: 'Contact', href: '/#contact' },
+  { name: 'API', href: `${apiUrl}` },
 ];
 
 // Smooth scroll function
