@@ -19,6 +19,22 @@ class VideoFrameResult(BaseModel):
     thumbnail_base64: str | None = None
 
 
+class VideoFrameAggregate(BaseModel):
+    resolution: Resolution | None = None
+    face_landmarks: list[float] | None = None
+    object_detections: list[ObjectDetection] | None = None
+    metrics: MetricsOutput | None = None
+    thumbnail_base64: str | None = None
+
+
+class VideoFrameGroup(BaseModel):
+    bucket_index: int
+    start_sec: float
+    end_sec: float
+    frame_count: int
+    aggregate: VideoFrameAggregate
+
+
 class VideoMetadata(BaseModel):
     duration_sec: float
     total_frames_processed: int
@@ -28,4 +44,5 @@ class VideoMetadata(BaseModel):
 
 class VideoProcessingResponse(BaseModel):
     video_metadata: VideoMetadata
-    frames: list[VideoFrameResult]
+    groups: list[VideoFrameGroup]
+    frames: list[VideoFrameResult] | None = None
