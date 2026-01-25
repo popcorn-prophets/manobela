@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useState } from 'react';
 
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 import type { SelectedVideo, VideoProcessingResponse } from '@/types/video';
 
@@ -36,7 +36,7 @@ export const useVideoUpload = (apiBaseUrl: string): UseVideoUploadResult => {
     }
 
     const selection = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      mediaTypes: ['videos'],
       allowsEditing: false,
       quality: 1,
     });
