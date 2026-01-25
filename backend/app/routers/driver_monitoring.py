@@ -123,16 +123,18 @@ async def connections(
         "frame_tasks": len(connection_manager.frame_tasks),
     }
 
-@router.post("/driver-monitoring/process-video", response_model=VideoProcessingResponse)
+@router.post("/driver-monitoring/process-video", response_model=VideoProcessingResponse, response_model_exclude_none=True)
 async def process_video_upload(
     request: Request,
     face_landmarker: FaceLandmarkerDep,
     object_detector: ObjectDetectorDep,
     video: UploadFile = File(...),
     target_fps: int = Query(15, ge=1, le=30),
+    group_interval_sec: int = Query(5, ge=1, le=60),
+    include_frames: bool = Query(False),
 ):
     """
-    Process an uploaded video file and return frame-by-frame metrics.
+    Process an uploaded video file and return grouped metrics.
     """
     client_host = request.client.host if request.client else "unknown"
     now = time.monotonic()
@@ -176,6 +178,8 @@ async def process_video_upload(
                         tmp_path,
                         target_fps=target_fps,
                         max_duration_sec=MAX_DURATION_SEC,
+                        group_interval_sec=group_interval_sec,
+                        include_frames=include_frames,
                         face_landmarker=face_landmarker,
                         object_detector=object_detector,
                     ),
@@ -198,7 +202,7 @@ async def process_video_upload(
                 detail="Invalid video format.",
             ) from exc
 
-        if not result.frames:
+        if not result.groups:
             raise HTTPException(
                 status_code=422,
                 detail="Video processing failed: no frames extracted.",
@@ -206,7 +210,8 @@ async def process_video_upload(
 
         return VideoProcessingResponse(
             video_metadata=result.metadata,
-            frames=result.frames,
+            groups=result.groups,
+            frames=result.frames if include_frames else None,
         )
 
     finally:
