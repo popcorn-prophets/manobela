@@ -26,7 +26,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="maps"
+        name="maps/index"
         options={{
           title: 'Maps',
           tabBarIcon: ({ color, size }) => <Map color={color} size={size} />,
