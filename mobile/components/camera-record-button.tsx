@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { colors } from '@/theme/colors';
+import { useTheme } from '@react-navigation/native';
 
 type CameraRecordButtonProps = {
   isRecording: boolean;
@@ -16,6 +16,8 @@ export const CameraRecordButton = ({
   disabled = false,
   onPress,
 }: CameraRecordButtonProps) => {
+  const { colors } = useTheme();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -25,12 +27,12 @@ export const CameraRecordButton = ({
       accessibilityLabel={isRecording ? 'Stop recording' : 'Start recording'}
       accessibilityState={{ disabled }}
       style={[styles.button, disabled && styles.disabledButton]}>
-      <View style={[styles.outerRing, disabled && styles.disabledRing]}>
+      <View style={[styles.outerRing]}>
         <View
           style={[
             isRecording ? styles.stopSquare : styles.innerDot,
             { backgroundColor: colors.destructive },
-            disabled && { backgroundColor: colors.destructiveDisabled },
+            disabled && { opacity: 0.5 },
           ]}
         />
       </View>
@@ -70,9 +72,5 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 6,
-  },
-
-  disabledRing: {
-    borderColor: 'rgba(255,255,255,0.6)',
   },
 });
