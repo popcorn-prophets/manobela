@@ -14,7 +14,19 @@ class HeadPoseMetricOutput(MetricOutputBase):
     Output schema for the head pose metric.
 
     Attributes:
-        yaw_alert: Whether the yaw angle deviates from the configured threshold.
+"""
+  Output schema for the head pose metric.
+
+  Attributes:
+      yaw_alert: Whether the relative yaw angle deviates from threshold.
+      pitch_alert: Whether the relative pitch angle deviates from threshold.
+      roll_alert: Whether the relative roll angle deviates from threshold.
+      yaw: Relative yaw angle (degrees, current minus baseline), if available.
+      pitch: Relative pitch angle (degrees, current minus baseline), if available.
+      roll: Relative roll angle (degrees, current minus baseline), if available.
+      calibrating: Whether the baseline is currently being calibrated.
+      head_pose_sustained: Fraction of minimum sustained duration elapsed.
+  """
         pitch_alert: Whether the pitch angle deviates from the configured threshold.
         roll_alert: Whether the roll angle deviates from the configured threshold.
         yaw: Absolute yaw angle (in degrees) for the current frame, if available.
