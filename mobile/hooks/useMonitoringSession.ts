@@ -46,7 +46,7 @@ export const useMonitoringSession = ({
     startConnection,
     cleanup,
     transportStatus,
-    connectionStatus,
+    connectionStatus, 
     dataChannelState,
     onDataMessage,
     sendDataMessage,
@@ -65,6 +65,23 @@ export const useMonitoringSession = ({
   const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
   const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
   const [sessionDurationMs, setSessionDurationMs] = useState(0);
+
+  const setStreamEnabled = useCallback(
+    (enabled: boolean) => {
+      if (!stream) return;
+      stream.getTracks().forEach((track) => {
+        track.enabled = enabled;
+      });
+    },
+    [stream]
+  );
+
+  const sendMonitoringControl = useCallback(
+    (action: 'pause' | 'resume') => {
+      sendDataMessage({ type: 'monitoring-control', action });
+    },
+    [sendDataMessage]
+  );
 
   // Sync session state with WebRTC connection
   useEffect(() => {
@@ -155,19 +172,38 @@ export const useMonitoringSession = ({
 
     setSessionState('starting');
     try {
+      if (connectionStatus === 'connected' && clientId) {
+        setStreamEnabled(true);
+        sendMonitoringControl('resume');
+        return;
+      }
+
+      setStreamEnabled(true);
       startConnection();
     } catch (err) {
       console.error('Failed to start connection:', err);
       setSessionState('idle');
     }
-  }, [sessionState, startConnection]);
+  }, [
+    sessionState,
+    connectionStatus,
+    clientId,
+    setStreamEnabled,
+    sendMonitoringControl,
+    startConnection,
+  ]);
 
   // Stops the monitoring session.
   const stop = useCallback(async () => {
     if (sessionState !== 'active') return;
 
     setSessionState('stopping');
-    cleanup();
+    if (connectionStatus === 'connected') {
+      sendMonitoringControl('pause');
+      setStreamEnabled(false);
+    } else {
+      cleanup();
+    }
 
     await sessionLogger.endSession();
 
@@ -176,7 +212,13 @@ export const useMonitoringSession = ({
     setSessionState('idle');
     setInferenceData(null);
     latestInferenceRef.current = null;
-  }, [sessionState, cleanup]);
+  }, [
+    sessionState,
+    connectionStatus,
+    sendMonitoringControl,
+    setStreamEnabled,
+    cleanup,
+  ]);
 
   const recalibrateHeadPose = useCallback(() => {
     if (dataChannelState === 'open') {

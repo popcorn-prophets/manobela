@@ -1,12 +1,15 @@
 import asyncio
 import json
 import logging
+import time
 from typing import Optional
 
 from aiortc import RTCDataChannel, RTCPeerConnection
 from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
+
+SESSION_TTL_SEC = 5 * 60
 
 
 class ConnectionManager:
@@ -19,6 +22,10 @@ class ConnectionManager:
         self.peer_connections: dict[str, RTCPeerConnection] = {}
         self.data_channels: dict[str, RTCDataChannel] = {}
         self.frame_tasks: dict[str, asyncio.Task] = {}
+        self.processing_paused: dict[str, bool] = {}
+        self.processing_reset: dict[str, bool] = {}
+        self.session_started_at: dict[str, float] = {}
+        self.session_expiry_tasks: dict[str, asyncio.Task] = {}
         self.head_pose_recalibrate_requests: set[str] = set()
         logger.info("Connection Manager initialized")
 
@@ -26,15 +33,48 @@ class ConnectionManager:
         """Accept a WebSocket connection and register it."""
         await websocket.accept()
         self.active_connections[client_id] = websocket
+        self.processing_paused[client_id] = False
+        self.processing_reset[client_id] = False
+        started_at = time.monotonic()
+        self.session_started_at[client_id] = started_at
+        self.session_expiry_tasks[client_id] = asyncio.create_task(
+            self._expire_session(client_id, started_at)
+        )
         logger.info(
             "Client %s connected. Total: %d", client_id, len(self.active_connections)
         )
+
+    async def _expire_session(self, client_id: str, started_at: float) -> None:
+        try:
+            await asyncio.sleep(SESSION_TTL_SEC)
+            if self.session_started_at.get(client_id) != started_at:
+                return
+
+            ws = self.active_connections.get(client_id)
+            if not ws:
+                return
+
+            logger.info("Session expired for %s after %d seconds", client_id, SESSION_TTL_SEC)
+            await ws.close(code=4000, reason="Session expired")
+        except asyncio.CancelledError:
+            return
+        except Exception as exc:
+            logger.warning("Failed to expire session for %s: %s", client_id, exc)
+
+    def _cancel_expiry_task(self, client_id: str) -> None:
+        task = self.session_expiry_tasks.pop(client_id, None)
+        if task and not task.done():
+            task.cancel()
 
     def disconnect(self, client_id: str) -> Optional[RTCPeerConnection]:
         """Remove all resources associated with a client and cancel background tasks."""
         self.active_connections.pop(client_id, None)
         pc = self.peer_connections.pop(client_id, None)
         self.data_channels.pop(client_id, None)
+        self.processing_paused.pop(client_id, None)
+        self.processing_reset.pop(client_id, None)
+        self.session_started_at.pop(client_id, None)
+        self._cancel_expiry_task(client_id)
         self.head_pose_recalibrate_requests.discard(client_id)
 
         task = self.frame_tasks.pop(client_id, None)
@@ -113,6 +153,13 @@ class ConnectionManager:
         self.peer_connections.clear()
         self.data_channels.clear()
         self.frame_tasks.clear()
+        self.processing_paused.clear()
+        self.processing_reset.clear()
+        self.session_started_at.clear()
+        for task in list(self.session_expiry_tasks.values()):
+            if task and not task.done():
+                task.cancel()
+        self.session_expiry_tasks.clear()
         self.head_pose_recalibrate_requests.clear()
 
         logger.info("Connection Manager shutdown complete")

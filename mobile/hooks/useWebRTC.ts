@@ -165,7 +165,9 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
   const sendDataMessage = useCallback(
     (msg: any) => {
       try {
-        dataChannelRef.current?.send(JSON.stringify(msg));
+        const channel = dataChannelRef.current;
+        if (!channel || channel.readyState !== 'open') return;
+        channel.send(JSON.stringify(msg));
       } catch (err: any) {
         setErrorState(err.message || 'Failed to send data message', err?.cause?.toString?.());
       }
