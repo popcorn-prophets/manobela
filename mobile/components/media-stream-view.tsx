@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import { SessionState } from '@/hooks/useMonitoringSession';
 import { CameraRecordButton } from './camera-record-button';
 import { FacialLandmarkOverlay } from './facial-landmark-overlay';
 import { ObjectDetectionOverlay } from './object-detection-overlay';
-import { InferenceData } from '@/types/inference';
+import { InferenceData, ObjectDetection } from '@/types/inference';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Eye, EyeOff, Frown, Meh, ScanFace } from 'lucide-react-native';
@@ -40,13 +40,50 @@ export const MediaStreamView = ({
 }: MediaStreamViewProps) => {
   const [viewDimensions, setViewDimensions] = useState({ width: 0, height: 0 });
   const [showOverlay, setShowOverlay] = useState(true);
-
-  if (!stream) return null;
+  const [smoothedDetections, setSmoothedDetections] = useState<
+    ObjectDetection[] | null
+  >(null);
+  const lastDetectionsRef = useRef<ObjectDetection[] | null>(null);
+  const lastDetectionAtRef = useRef<number | null>(null);
 
   const landmarks = inferenceData?.face_landmarks || null;
   const objectDetections = inferenceData?.object_detections || null;
   const videoWidth = inferenceData?.resolution?.width || 480;
   const videoHeight = inferenceData?.resolution?.height || 320;
+  const frameTick = inferenceData?.timestamp ?? null;
+
+  useEffect(() => {
+    const HOLD_MS = 500;
+
+    if (sessionState !== 'active') {
+      lastDetectionsRef.current = null;
+      lastDetectionAtRef.current = null;
+      setSmoothedDetections(null);
+      return;
+    }
+
+    if (objectDetections && objectDetections.length > 0) {
+      lastDetectionsRef.current = objectDetections;
+      lastDetectionAtRef.current = Date.now();
+      setSmoothedDetections(objectDetections);
+      return;
+    }
+
+    const lastAt = lastDetectionAtRef.current;
+    if (lastAt === null) {
+      setSmoothedDetections(null);
+      return;
+    }
+
+    if (Date.now() - lastAt <= HOLD_MS) {
+      setSmoothedDetections(lastDetectionsRef.current);
+      return;
+    }
+
+    lastDetectionsRef.current = null;
+    lastDetectionAtRef.current = null;
+    setSmoothedDetections(null);
+  }, [frameTick, objectDetections, sessionState]);
 
   // Determine whether to show landmarks
   const showOverlays =
@@ -57,10 +94,12 @@ export const MediaStreamView = ({
     viewDimensions.height > 0;
 
   const showLandmarks = showOverlays && landmarks != null;
-  const showDetections = showOverlays && objectDetections != null;
+  const showDetections = showOverlays && smoothedDetections != null;
   const formattedDuration = formatDuration(sessionDurationMs);
   const canRecalibrate = sessionState === 'active' && Boolean(onRecalibrateHeadPose);
   const recalibrateActive = canRecalibrate && recalibrateEnabled;
+
+  if (!stream) return null;
 
   return (
     <View
@@ -92,7 +131,7 @@ export const MediaStreamView = ({
 
       {showDetections && (
         <ObjectDetectionOverlay
-          detections={objectDetections}
+          detections={smoothedDetections}
           videoWidth={videoWidth}
           videoHeight={videoHeight}
           viewWidth={viewDimensions.width}
