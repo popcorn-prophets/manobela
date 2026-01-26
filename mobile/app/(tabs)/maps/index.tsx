@@ -1,20 +1,23 @@
 import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Alert } from 'react-native';
 import { Stack } from 'expo-router';
-import { OSMView, SearchBox, type OSMViewRef } from 'expo-osm-sdk';
+import { OSMView, type OSMViewRef } from 'expo-osm-sdk';
+import * as Location from 'expo-location';
 import { useRouteCalculation } from './hooks/useRouteCalculation';
+import { useLocationPermission } from './hooks/useLocationPermission';
 import { RouteControls } from './components/RouteControls';
 import { RouteInfo } from './components/RouteInfo';
+import { LocationSearchBoxes } from './components/LocationSearchBoxes';
 
-interface Location {
+interface MapLocation {
   coordinate: { latitude: number; longitude: number };
   displayName?: string;
 }
 
 export default function MapsScreen() {
   const mapRef = useRef<OSMViewRef>(null);
-  const [startLocation, setStartLocation] = useState<Location | null>(null);
-  const [destinationLocation, setDestinationLocation] = useState<Location | null>(null);
+  const [startLocation, setStartLocation] = useState<MapLocation | null>(null);
+  const [destinationLocation, setDestinationLocation] = useState<MapLocation | null>(null);
 
   const {
     route,
@@ -25,6 +28,46 @@ export default function MapsScreen() {
     formatDistance,
     formatDuration,
   } = useRouteCalculation();
+
+  const { requestPermission, checkPermission } = useLocationPermission();
+  const [isGettingUserLocation, setIsGettingUserLocation] = useState(false);
+
+  // Check permission on mount
+  useEffect(() => {
+    checkPermission();
+  }, [checkPermission]);
+
+  // Function to get user's current location
+  const getUserLocation = useCallback(async (): Promise<MapLocation | null> => {
+    try {
+      // Request location permission first
+      const hasPermission = await requestPermission();
+
+      if (!hasPermission) {
+        return null;
+      }
+
+      // Get current location using expo-location
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      if (!currentLocation) {
+        return null;
+      }
+
+      return {
+        coordinate: {
+          latitude: currentLocation.coords.latitude,
+          longitude: currentLocation.coords.longitude,
+        },
+        displayName: 'Current Location',
+      };
+    } catch (err: any) {
+      console.error('Error getting user location:', err);
+      return null;
+    }
+  }, [requestPermission]);
 
   // Convert locations to markers array
   const markers = useMemo(() => {
@@ -57,9 +100,33 @@ export default function MapsScreen() {
     return markersArray;
   }, [startLocation, destinationLocation]);
 
-  // Handle location selection from search (sets destination)
-  const handleLocationSelected = useCallback(
-    (location: Location) => {
+  // Handle start location selection from search
+  const handleStartLocationSelected = useCallback(
+    async (location: MapLocation) => {
+      setStartLocation(location);
+
+      // Animate map to selected location
+      mapRef.current?.animateToLocation(
+        location.coordinate.latitude,
+        location.coordinate.longitude,
+        15
+      );
+
+      // If destination exists, automatically calculate route
+      if (destinationLocation && mapRef.current) {
+        await calculateRoute(
+          location.coordinate,
+          destinationLocation.coordinate,
+          mapRef
+        );
+      }
+    },
+    [destinationLocation, calculateRoute]
+  );
+
+  // Handle destination location selection from search
+  const handleDestinationLocationSelected = useCallback(
+    async (location: MapLocation) => {
       setDestinationLocation(location);
 
       // Animate map to selected location
@@ -68,8 +135,37 @@ export default function MapsScreen() {
         location.coordinate.longitude,
         15
       );
+
+      // If no start location is set, automatically get user's location
+      if (!startLocation) {
+        setIsGettingUserLocation(true);
+        const userLocation = await getUserLocation();
+
+        if (userLocation) {
+          setStartLocation(userLocation);
+
+          // Auto-calculate route since both locations are now available
+          if (mapRef.current) {
+            await calculateRoute(
+              userLocation.coordinate,
+              location.coordinate,
+              mapRef
+            );
+          }
+        }
+        setIsGettingUserLocation(false);
+      } else {
+        // If start location already exists, auto-calculate route
+        if (mapRef.current) {
+          await calculateRoute(
+            startLocation.coordinate,
+            location.coordinate,
+            mapRef
+          );
+        }
+      }
     },
-    []
+    [startLocation, getUserLocation, calculateRoute]
   );
 
   // Handle using current location (sets start and auto-calculates route)
@@ -80,21 +176,14 @@ export default function MapsScreen() {
         return;
       }
 
-      // Get current location from map
-      const currentLocation = await mapRef.current.getCurrentLocation();
+      setIsGettingUserLocation(true);
+      const location = await getUserLocation();
 
-      if (!currentLocation) {
-        Alert.alert('Error', 'Unable to get current location');
+      if (!location) {
+        Alert.alert('Error', 'Unable to get current location. Please check your location permissions.');
+        setIsGettingUserLocation(false);
         return;
       }
-
-      const location: Location = {
-        coordinate: {
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-        },
-        displayName: 'Current Location',
-      };
 
       setStartLocation(location);
 
@@ -113,11 +202,13 @@ export default function MapsScreen() {
           15
         );
       }
+      setIsGettingUserLocation(false);
     } catch (err: any) {
       console.error('Error getting current location:', err);
       Alert.alert('Error', err.message || 'Failed to get current location');
+      setIsGettingUserLocation(false);
     }
-  }, [destinationLocation, calculateRoute]);
+  }, [destinationLocation, calculateRoute, getUserLocation]);
 
   // Handle clear route
   const handleClearRoute = useCallback(() => {
@@ -136,10 +227,13 @@ export default function MapsScreen() {
   return (
     <View className="flex-1">
       <Stack.Screen options={{ title: 'Maps' }} />
-      <SearchBox
-        placeholder="Search for destination..."
-        onLocationSelected={handleLocationSelected}
-        style={{ margin: 20, marginTop: 60 }}
+      <LocationSearchBoxes
+        startLocation={startLocation}
+        destinationLocation={destinationLocation}
+        onStartLocationSelected={handleStartLocationSelected}
+        onDestinationLocationSelected={handleDestinationLocationSelected}
+        onUseCurrentLocation={handleUseCurrentLocation}
+        isGettingUserLocation={isGettingUserLocation}
       />
       <OSMView
         ref={mapRef}
@@ -157,6 +251,7 @@ export default function MapsScreen() {
         hasRoute={!!route}
         isCalculating={isCalculating}
         hasCurrentLocation={!!startLocation}
+        isGettingUserLocation={isGettingUserLocation}
       />
       <RouteInfo
         route={route}

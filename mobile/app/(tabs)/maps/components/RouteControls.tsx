@@ -7,6 +7,7 @@ interface RouteControlsProps {
   hasRoute: boolean;
   isCalculating: boolean;
   hasCurrentLocation: boolean;
+  isGettingUserLocation: boolean;
 }
 
 export function RouteControls({
@@ -15,6 +16,7 @@ export function RouteControls({
   hasRoute,
   isCalculating,
   hasCurrentLocation,
+  isGettingUserLocation,
 }: RouteControlsProps) {
   return (
     <View className="absolute bottom-24 right-4 flex-col gap-3">
@@ -22,7 +24,7 @@ export function RouteControls({
       {!hasCurrentLocation && (
         <TouchableOpacity
           onPress={onUseCurrentLocation}
-          disabled={isCalculating}
+          disabled={isCalculating || isGettingUserLocation}
           className="rounded-full bg-blue-500 p-4 shadow-lg active:bg-blue-600"
           style={{
             shadowColor: '#000',
@@ -31,7 +33,7 @@ export function RouteControls({
             shadowRadius: 3.84,
             elevation: 5,
           }}>
-          {isCalculating ? (
+          {isCalculating || isGettingUserLocation ? (
             <ActivityIndicator color="white" size="small" />
           ) : (
             <Navigation color="white" size={24} />
