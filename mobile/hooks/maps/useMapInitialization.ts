@@ -1,14 +1,18 @@
-import { useState, useEffect, useCallback, RefObject } from 'react';
+import { useState, useEffect, RefObject } from 'react';
 import { OSMViewRef } from 'expo-osm-sdk';
-import * as Location from 'expo-location';
 import { MapLocation } from '@/types/maps';
 
 interface UseMapInitializationProps {
   mapRef: RefObject<OSMViewRef | null>;
+  getLocation: () => Promise<MapLocation | null>;
   initialZoom?: number;
 }
 
-export const useMapInitialization = ({ mapRef, initialZoom = 20 }: UseMapInitializationProps) => {
+export const useMapInitialization = ({
+  mapRef,
+  getLocation,
+  initialZoom = 20,
+}: UseMapInitializationProps) => {
   const [initialCenter, setInitialCenter] = useState<{
     latitude: number;
     longitude: number;
@@ -17,39 +21,10 @@ export const useMapInitialization = ({ mapRef, initialZoom = 20 }: UseMapInitial
   const [startLocation, setStartLocation] = useState<MapLocation | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<MapLocation | null>(null);
 
-  const getUserLocation = useCallback(async (): Promise<MapLocation | null> => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-
-      if (status !== 'granted') {
-        return null;
-      }
-
-      const currentLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      if (!currentLocation) {
-        return null;
-      }
-
-      return {
-        coordinate: {
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        },
-        displayName: 'Current Location',
-      };
-    } catch (err: any) {
-      console.error('Error getting user location:', err);
-      return null;
-    }
-  }, []);
-
   // Initialize map center and start location on mount
   useEffect(() => {
     const init = async () => {
-      const userLocation = await getUserLocation();
+      const userLocation = await getLocation();
       if (userLocation) {
         setInitialCenter(userLocation.coordinate);
         setStartLocation(userLocation);
@@ -57,7 +32,7 @@ export const useMapInitialization = ({ mapRef, initialZoom = 20 }: UseMapInitial
     };
 
     init();
-  }, [getUserLocation]);
+  }, [getLocation]);
 
   // Animate to initial center when map is ready
   useEffect(() => {
@@ -78,6 +53,5 @@ export const useMapInitialization = ({ mapRef, initialZoom = 20 }: UseMapInitial
     setStartLocation,
     destinationLocation,
     setDestinationLocation,
-    getUserLocation,
   };
 };

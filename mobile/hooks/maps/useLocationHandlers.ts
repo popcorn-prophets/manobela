@@ -9,7 +9,7 @@ interface UseLocationHandlersProps {
   setStartLocation: (location: MapLocation | null) => void;
   destinationLocation: MapLocation | null;
   setDestinationLocation: (location: MapLocation | null) => void;
-  getUserLocation: () => Promise<MapLocation | null>;
+  getLocation: () => Promise<MapLocation | null>;
   calculateRoute: (
     start: Coordinate,
     end: Coordinate,
@@ -24,7 +24,7 @@ export const useLocationHandlers = ({
   setStartLocation,
   destinationLocation,
   setDestinationLocation,
-  getUserLocation,
+  getLocation,
   calculateRoute,
   initialZoom = 20,
 }: UseLocationHandlersProps) => {
@@ -69,7 +69,7 @@ export const useLocationHandlers = ({
 
       if (!startLocation) {
         setIsGettingUserLocation(true);
-        const userLocation = await getUserLocation();
+        const userLocation = await getLocation();
 
         if (userLocation) {
           setStartLocation(userLocation);
@@ -87,7 +87,7 @@ export const useLocationHandlers = ({
     },
     [
       startLocation,
-      getUserLocation,
+      getLocation,
       calculateRoute,
       setStartLocation,
       setDestinationLocation,
@@ -104,7 +104,7 @@ export const useLocationHandlers = ({
       }
 
       setIsGettingUserLocation(true);
-      const location = await getUserLocation();
+      const location = await getLocation();
 
       if (!location) {
         Alert.alert(
@@ -117,22 +117,19 @@ export const useLocationHandlers = ({
 
       setStartLocation(location);
 
-      if (destinationLocation) {
-        await calculateRoute(location.coordinate, destinationLocation.coordinate, mapRef);
-      } else {
-        mapRef.current?.animateToLocation(
-          location.coordinate.latitude,
-          location.coordinate.longitude,
-          initialZoom
-        );
-      }
+      mapRef.current?.animateToLocation(
+        location.coordinate.latitude,
+        location.coordinate.longitude,
+        initialZoom
+      );
+
       setIsGettingUserLocation(false);
     } catch (err: any) {
       console.error('Error getting current location:', err);
       Alert.alert('Error', err.message || 'Failed to get current location');
       setIsGettingUserLocation(false);
     }
-  }, [destinationLocation, calculateRoute, getUserLocation, setStartLocation, mapRef, initialZoom]);
+  }, [getLocation, setStartLocation, mapRef, initialZoom]);
 
   return {
     isGettingUserLocation,

@@ -1,6 +1,6 @@
 import { View, TouchableOpacity } from 'react-native';
 import { SearchBox } from '@/components/maps/search-box';
-import { Navigation, MapPin, LocateFixed } from 'lucide-react-native';
+import { MapPin, LocateFixed, Target } from 'lucide-react-native';
 import { useTheme } from '@react-navigation/native';
 import { cn } from '@/lib/utils';
 
@@ -47,7 +47,7 @@ export function LocationSearchBoxes({
         {/* Start */}
         <View className="flex-row items-center border-b border-border bg-background">
           <View className="py-3 pl-4">
-            <LocateFixed size={16} color={colors.primary} />
+            <Target size={16} color={colors.primary} />
           </View>
 
           <View className="flex-1">
@@ -63,7 +63,7 @@ export function LocationSearchBoxes({
             onPress={onUseCurrentLocation}
             disabled={isGettingUserLocation}
             className="py-3 pr-4">
-            <Navigation color={colors.primary} size={16} />
+            <LocateFixed color={colors.primary} size={16} />
           </TouchableOpacity>
         </View>
 

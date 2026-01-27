@@ -12,6 +12,7 @@ import { useLocationHandlers } from '@/hooks/maps/useLocationHandlers';
 import { RouteControls } from '@/components/maps/map-control';
 import { RouteInfo } from '@/components/maps/route-info';
 import { LocationSearchBoxes } from '@/components/maps/location-search-boxes';
+import { useLocation } from '@/hooks/maps/useLocation';
 
 const FALLBACK_INITIAL_CENTER = { latitude: 40.7128, longitude: -74.006 };
 const INITIAL_ZOOM = 20;
@@ -24,6 +25,8 @@ export default function MapsScreen() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const bottomSheetSnapPoints = useMemo(() => ['15%', '45%', '75%'], []);
 
+  const { getLocation } = useLocation();
+
   // Initial map setup
   const {
     initialCenter,
@@ -32,8 +35,7 @@ export default function MapsScreen() {
     setStartLocation,
     destinationLocation,
     setDestinationLocation,
-    getUserLocation,
-  } = useMapInitialization({ mapRef, initialZoom: INITIAL_ZOOM });
+  } = useMapInitialization({ mapRef, getLocation, initialZoom: INITIAL_ZOOM });
 
   // Location permission
   const { checkPermission } = useLocationPermission();
@@ -61,7 +63,7 @@ export default function MapsScreen() {
     setStartLocation,
     destinationLocation,
     setDestinationLocation,
-    getUserLocation,
+    getLocation,
     calculateRoute,
     initialZoom: INITIAL_ZOOM,
   });

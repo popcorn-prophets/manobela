@@ -1,5 +1,5 @@
 import { View, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Navigation, X } from 'lucide-react-native';
+import { LocateFixed, X } from 'lucide-react-native';
 import { useTheme } from '@react-navigation/native';
 import { cn } from '@/lib/utils';
 import { ZoomControls } from './zoom-controls';
@@ -31,18 +31,19 @@ export function RouteControls({
   return (
     <View className={cn('flex-col gap-3', className)}>
       {/* Use Current Location Button */}
-      {!hasCurrentLocation && (
-        <TouchableOpacity
-          onPress={onUseCurrentLocation}
-          disabled={isCalculating || isGettingUserLocation}
-          className="rounded-full bg-background/80 p-3 shadow-lg active:bg-background">
-          {isCalculating || isGettingUserLocation ? (
-            <ActivityIndicator color={colors.text} size="small" />
-          ) : (
-            <Navigation color={colors.text} size={20} />
-          )}
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        onPress={onUseCurrentLocation}
+        disabled={isCalculating || isGettingUserLocation}
+        className="rounded-full bg-background/80 p-3 shadow-lg active:bg-background">
+        {isCalculating || isGettingUserLocation ? (
+          <ActivityIndicator color={colors.text} size="small" />
+        ) : (
+          <LocateFixed color={colors.text} size={20} />
+        )}
+      </TouchableOpacity>
+
+      {/* Zoom Controls */}
+      <ZoomControls onZoomIn={onZoomIn} onZoomOut={onZoomOut} />
 
       {/* Clear Route Button */}
       {hasRoute && (
@@ -52,9 +53,6 @@ export function RouteControls({
           <X color="white" size={20} />
         </TouchableOpacity>
       )}
-
-      {/* Zoom Controls */}
-      <ZoomControls onZoomIn={onZoomIn} onZoomOut={onZoomOut} />
     </View>
   );
 }
