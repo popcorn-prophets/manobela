@@ -90,7 +90,7 @@ export default function MapsScreen() {
     };
 
     init();
-  }, []);
+  }, [getUserLocation]);
 
   // Convert locations to markers array
   const markers = useMemo(() => {
@@ -125,7 +125,12 @@ export default function MapsScreen() {
 
   // Handle start location selection from search
   const handleStartLocationSelected = useCallback(
-    async (location: MapLocation) => {
+    async (location: MapLocation | null) => {
+      if (!location) {
+        setStartLocation(null);
+        return;
+      }
+
       setStartLocation(location);
 
       // Animate map to selected location
@@ -145,7 +150,12 @@ export default function MapsScreen() {
 
   // Handle destination location selection from search
   const handleDestinationLocationSelected = useCallback(
-    async (location: MapLocation) => {
+    async (location: MapLocation | null) => {
+      if (!location) {
+        setDestinationLocation(null);
+        return;
+      }
+
       setDestinationLocation(location);
 
       // Animate map to selected location
