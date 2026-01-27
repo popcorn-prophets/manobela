@@ -24,7 +24,7 @@ const team = [
   {
     id: 2,
     name: 'Dejel Cyrus De Asis',
-    role: 'Developer',
+    role: 'Co-Lead Developer',
     description: '2nd year Computer Science student at the University of the Philippines',
     image: '',
     fallback: 'DC',

@@ -85,7 +85,7 @@ export const useVideoUpload = (apiBaseUrl: string): UseVideoUploadResult => {
     const xhr = new XMLHttpRequest();
     const uploadUrl =
       `${apiBaseUrl}/driver-monitoring/process-video` +
-      `?group_interval_sec=5&include_frames=false`;
+      `?group_interval_sec=5&include_frames=true&target_fps=10`;
     xhr.open('POST', uploadUrl);
     xhr.responseType = 'json';
     xhr.setRequestHeader('Accept', 'application/json');
@@ -116,8 +116,16 @@ export const useVideoUpload = (apiBaseUrl: string): UseVideoUploadResult => {
             typeof responseBody === 'string'
               ? (JSON.parse(responseBody) as VideoProcessingResponse)
               : (responseBody as VideoProcessingResponse);
-          const sanitized = { ...parsed, frames: undefined };
-          setResult(sanitized);
+          const trimmedFrames = parsed.frames?.map((frame) => ({
+            timestamp: frame.timestamp,
+            frame_number: frame.frame_number,
+            resolution: frame.resolution,
+            face_landmarks: frame.face_landmarks,
+            object_detections: frame.object_detections,
+            metrics: null,
+            thumbnail_base64: null,
+          }));
+          setResult({ ...parsed, frames: trimmedFrames });
 
           // Log the uploaded video to the database for insights
           if (selectedVideo) {

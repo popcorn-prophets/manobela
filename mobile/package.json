@@ -30,6 +30,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
     "expo": "~54.0.29",
+    "expo-av": "~16.0.8",
     "expo-battery": "~10.0.8",
     "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.12",
