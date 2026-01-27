@@ -20,6 +20,7 @@ class ConnectionManager:
         self.data_channels: dict[str, RTCDataChannel] = {}
         self.frame_tasks: dict[str, asyncio.Task] = {}
         self.head_pose_recalibrate_requests: set[str] = set()
+        self.paused_clients: set[str] = set()
         logger.info("Connection Manager initialized")
 
     async def connect(self, websocket: WebSocket, client_id: str) -> None:
@@ -36,6 +37,7 @@ class ConnectionManager:
         pc = self.peer_connections.pop(client_id, None)
         self.data_channels.pop(client_id, None)
         self.head_pose_recalibrate_requests.discard(client_id)
+        self.paused_clients.discard(client_id)
 
         task = self.frame_tasks.pop(client_id, None)
         if task and not task.done():
@@ -127,3 +129,14 @@ class ConnectionManager:
             self.head_pose_recalibrate_requests.remove(client_id)
             return True
         return False
+
+    def set_paused(self, client_id: str, paused: bool) -> None:
+        """Pause/resume processing for a given client."""
+        if paused:
+            self.paused_clients.add(client_id)
+        else:
+            self.paused_clients.discard(client_id)
+
+    def is_paused(self, client_id: str) -> bool:
+        """Return True if processing is paused for a client."""
+        return client_id in self.paused_clients

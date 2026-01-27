@@ -153,6 +153,10 @@ async def process_video_frames(
                     continue
                 last_process_time = now
 
+                if connection_manager.is_paused(client_id):
+                    await asyncio.sleep(0)
+                    continue
+
                 if not frame:
                     logger.info("Frame is empty for %s", client_id)
                     break

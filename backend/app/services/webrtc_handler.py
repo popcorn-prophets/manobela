@@ -91,6 +91,18 @@ async def create_peer_connection(
             if data.get("type") == "head_pose_recalibrate":
                 logger.info("Head pose recalibration requested by %s", client_id)
                 connection_manager.request_head_pose_recalibration(client_id)
+                return
+
+            if data.get("type") == "monitoring_control":
+                action = data.get("action")
+                if action == "pause":
+                    logger.info("Pausing monitoring for %s", client_id)
+                    connection_manager.set_paused(client_id, True)
+                elif action == "resume":
+                    logger.info("Resuming monitoring for %s", client_id)
+                    connection_manager.set_paused(client_id, False)
+                else:
+                    logger.info("Unknown monitoring control action from %s: %s", client_id, action)
 
     @pc.on("icecandidate")
     async def on_icecandidate(candidate):

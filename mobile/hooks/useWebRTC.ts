@@ -42,6 +42,12 @@ interface UseWebRTCReturn {
   // Tears down transport, peer connection, and channels
   cleanup: () => void;
 
+  // Enable/disable outgoing media tracks without tearing down the connection
+  setStreamEnabled: (enabled: boolean) => void;
+
+  // Pause/resume processing on the server via data channel
+  sendMonitoringControl: (action: 'pause' | 'resume') => void;
+
   // Low-level escape hatches
   sendSignalingMessage: (msg: SignalingMessage) => void;
   onSignalingMessage: (handler: (msg: SignalingMessage) => void) => () => void;
@@ -171,6 +177,23 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
       }
     },
     [setErrorState]
+  );
+
+  const setStreamEnabled = useCallback(
+    (enabled: boolean) => {
+      if (!stream) return;
+      stream.getTracks().forEach((track) => {
+        track.enabled = enabled;
+      });
+    },
+    [stream]
+  );
+
+  const sendMonitoringControl = useCallback(
+    (action: 'pause' | 'resume') => {
+      sendDataMessage({ type: 'monitoring_control', action });
+    },
+    [sendDataMessage]
   );
 
   // Allow external subscribers to observe raw data channel traffic
@@ -480,6 +503,8 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
     errorDetails,
     startConnection,
     cleanup,
+    setStreamEnabled,
+    sendMonitoringControl,
     sendSignalingMessage,
     onSignalingMessage,
     sendDataMessage,

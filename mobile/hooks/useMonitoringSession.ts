@@ -50,6 +50,8 @@ export const useMonitoringSession = ({
     dataChannelState,
     onDataMessage,
     sendDataMessage,
+    setStreamEnabled,
+    sendMonitoringControl,
     error,
     errorDetails,
   } = useWebRTC({ url, stream });
@@ -162,21 +164,46 @@ export const useMonitoringSession = ({
   const start = useCallback(async () => {
     if (sessionState !== 'idle') return;
 
-    setSessionState('starting');
     try {
+      const canResume =
+        connectionStatus === 'connected' && Boolean(clientId) && dataChannelState === 'open';
+
+      if (canResume) {
+        setSessionState('starting');
+        setStreamEnabled(true);
+        sendMonitoringControl('resume');
+        return;
+      }
+
+      if (connectionStatus === 'connected') {
+        cleanup();
+      }
+
+      setSessionState('starting');
+      setStreamEnabled(true);
       startConnection();
     } catch (err) {
       console.error('Failed to start connection:', err);
       setSessionState('idle');
     }
-  }, [sessionState, startConnection]);
+  }, [
+    sessionState,
+    connectionStatus,
+    clientId,
+    dataChannelState,
+    setStreamEnabled,
+    sendMonitoringControl,
+    cleanup,
+    startConnection,
+  ]);
 
   // Stops the monitoring session.
   const stop = useCallback(async () => {
     if (sessionState !== 'active') return;
 
     setSessionState('stopping');
-    cleanup();
+    sendMonitoringControl('pause');
+    setStreamEnabled(false);
 
     await sessionLogger.endSession();
 
@@ -185,7 +212,15 @@ export const useMonitoringSession = ({
     setSessionState('idle');
     setInferenceData(null);
     latestInferenceRef.current = null;
-  }, [sessionState, cleanup]);
+  }, [sessionState, sendMonitoringControl, setStreamEnabled]);
+
+  useEffect(() => {
+    return () => {
+      sendMonitoringControl('pause');
+      setStreamEnabled(false);
+      cleanup();
+    };
+  }, [cleanup, sendMonitoringControl, setStreamEnabled]);
 
   const recalibrateHeadPose = useCallback(() => {
     if (dataChannelState === 'open') {
