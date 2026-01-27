@@ -27,8 +27,15 @@ export default function MapsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { settings } = useSettings();
-  const { shouldStartNavigation, clearNavigationRequest, requestMonitoringStart, setCoordinating } =
-    useCoordinationStore();
+  const {
+    shouldStartNavigation,
+    shouldStopNavigation,
+    clearNavigationRequest,
+    clearNavigationStopRequest,
+    requestMonitoringStart,
+    requestMonitoringStop,
+    setCoordinating,
+  } = useCoordinationStore();
 
   const mapRef = useRef<OSMViewRef>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -63,6 +70,24 @@ export default function MapsScreen() {
     formatDuration,
   } = useRouteCalculation({ mapRef });
 
+  // Ref to store stopNavigation to avoid circular dependency
+  const stopNavigationRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Handle stop navigation with auto-coordination
+  const handleStopNavigation = useCallback(() => {
+    if (stopNavigationRef.current) {
+      stopNavigationRef.current();
+    }
+
+    // Auto-stop monitoring when navigation stops (if enabled)
+    if (settings.enableAutoCoordination && !useCoordinationStore.getState().isCoordinating) {
+      setCoordinating(true);
+      requestMonitoringStop();
+      // Reset coordination flag after a delay
+      setTimeout(() => setCoordinating(false), 1000);
+    }
+  }, [settings.enableAutoCoordination, requestMonitoringStop, setCoordinating]);
+
   // Navigation management
   const {
     navigationState,
@@ -71,7 +96,12 @@ export default function MapsScreen() {
     handleLocationUpdate,
     formatDistanceMeters,
     formatTimeSeconds,
-  } = useNavigationManagement({ mapRef, route });
+  } = useNavigationManagement({ mapRef, route, onNavigationComplete: handleStopNavigation });
+
+  // Update ref with stopNavigation
+  useEffect(() => {
+    stopNavigationRef.current = stopNavigation;
+  }, [stopNavigation]);
 
   // Location handlers
   const {
@@ -135,10 +165,23 @@ export default function MapsScreen() {
     clearNavigationRequest,
   ]);
 
+  // Listen for requests to stop navigation from monitoring
+  useEffect(() => {
+    if (shouldStopNavigation && navigationState.isNavigating) {
+      clearNavigationStopRequest();
+      stopNavigation();
+    }
+  }, [
+    shouldStopNavigation,
+    navigationState.isNavigating,
+    stopNavigation,
+    clearNavigationStopRequest,
+  ]);
+
   // Handle clear route (stop)
   const handleClearRoute = useCallback(() => {
     if (navigationState.isNavigating) {
-      stopNavigation();
+      handleStopNavigation();
     }
     clearRoute();
     setStartLocation(null);
@@ -148,7 +191,7 @@ export default function MapsScreen() {
     setStartLocation,
     setDestinationLocation,
     navigationState.isNavigating,
-    stopNavigation,
+    handleStopNavigation,
   ]);
 
   // Expand/collapse bottom sheet based on route and navigation state
@@ -254,7 +297,7 @@ export default function MapsScreen() {
               timeRemaining={navigationState.timeRemaining}
               nextTurnInstruction={navigationState.nextTurnInstruction}
               progress={navigationState.progress}
-              onStopNavigation={stopNavigation}
+              onStopNavigation={handleStopNavigation}
               formatDistanceMeters={formatDistanceMeters}
               formatTimeSeconds={formatTimeSeconds}
             />

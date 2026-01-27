@@ -18,8 +18,15 @@ export default function MonitorScreen() {
 
   const router = useRouter();
   const { settings } = useSettings();
-  const { shouldStartMonitoring, clearMonitoringRequest, requestNavigationStart, setCoordinating } =
-    useCoordinationStore();
+  const {
+    shouldStartMonitoring,
+    shouldStopMonitoring,
+    clearMonitoringRequest,
+    clearMonitoringStopRequest,
+    requestNavigationStart,
+    requestNavigationStop,
+    setCoordinating,
+  } = useCoordinationStore();
 
   const wsUrl = useMemo(() => {
     const baseUrl = settings.wsBaseUrl || process.env.EXPO_PUBLIC_WS_BASE || '';
@@ -59,13 +66,25 @@ export default function MonitorScreen() {
   }, []);
   useLowBattery(0.25, handleLowBattery, sessionState === 'active');
 
+  const handleStop = useCallback(() => {
+    stop();
+
+    // Auto-stop navigation when monitoring stops (if enabled)
+    if (settings.enableAutoCoordination && !useCoordinationStore.getState().isCoordinating) {
+      setCoordinating(true);
+      requestNavigationStop();
+      // Reset coordination flag after a delay
+      setTimeout(() => setCoordinating(false), 1000);
+    }
+  }, [stop, settings.enableAutoCoordination, requestNavigationStop, setCoordinating]);
+
   const handleToggle = useCallback(() => {
     if (sessionState === 'idle') {
       start();
     } else if (sessionState === 'active') {
-      stop();
+      handleStop();
     }
-  }, [sessionState, start, stop]);
+  }, [sessionState, start, handleStop]);
 
   // Auto-start navigation when monitoring starts (if enabled)
   useEffect(() => {
@@ -96,6 +115,14 @@ export default function MonitorScreen() {
       start();
     }
   }, [shouldStartMonitoring, sessionState, start, clearMonitoringRequest]);
+
+  // Listen for requests to stop monitoring from navigation
+  useEffect(() => {
+    if (shouldStopMonitoring && sessionState === 'active') {
+      clearMonitoringStopRequest();
+      stop();
+    }
+  }, [shouldStopMonitoring, sessionState, stop, clearMonitoringStopRequest]);
 
   const aspectRatio = useMemo(() => {
     const width = inferenceData?.resolution?.width ?? 320;

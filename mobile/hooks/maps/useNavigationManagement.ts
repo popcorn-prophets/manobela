@@ -21,6 +21,7 @@ interface NavigationState {
 interface UseNavigationManagementProps {
   mapRef: React.RefObject<OSMViewRef | null>;
   route: Route | null;
+  onNavigationComplete?: () => void;
 }
 
 // Calculate bearing between two coordinates
@@ -52,7 +53,11 @@ const calculateDistance = (from: Coordinate, to: Coordinate): number => {
   return R * c; // Distance in meters
 };
 
-export const useNavigationManagement = ({ mapRef, route }: UseNavigationManagementProps) => {
+export const useNavigationManagement = ({
+  mapRef,
+  route,
+  onNavigationComplete,
+}: UseNavigationManagementProps) => {
   const [navigationState, setNavigationState] = useState<NavigationState>({
     isNavigating: false,
     currentLocation: null,
@@ -196,8 +201,12 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
         if (distance < 50 && progress > 0.95) {
           // Stop navigation after a short delay to show arrival message
           setTimeout(() => {
-            if (isMountedRef.current && stopNavigationRef.current) {
-              stopNavigationRef.current();
+            if (isMountedRef.current) {
+              if (onNavigationComplete) {
+                onNavigationComplete();
+              } else if (stopNavigationRef.current) {
+                stopNavigationRef.current();
+              }
             }
           }, 2000);
         }
