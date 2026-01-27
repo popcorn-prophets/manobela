@@ -1,7 +1,7 @@
 import { View, ActivityIndicator, ScrollView, Pressable, Image, StyleSheet } from 'react-native';
 
 import { useMemo, useState } from 'react';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { FacialLandmarkOverlay } from '@/components/facial-landmark-overlay';
@@ -38,6 +38,9 @@ export default function UploadsScreen() {
 
   const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
   const [showOverlays, setShowOverlays] = useState(true);
+  const player = useVideoPlayer(selectedVideo?.uri ?? null, (player) => {
+    player.timeUpdateEventInterval = 0.1;
+  });
   const {
     groups,
     activeGroup,
@@ -45,7 +48,6 @@ export default function UploadsScreen() {
     playbackPositionMs,
     totalDurationMs,
     playbackView,
-    handlePlaybackStatus,
     handlePlaybackLayout,
     overlayLandmarks,
     overlayDetections,
@@ -57,6 +59,7 @@ export default function UploadsScreen() {
     result,
     selectedVideoUri: selectedVideo?.uri,
     showOverlays,
+    player,
   });
 
   return (
@@ -99,9 +102,7 @@ export default function UploadsScreen() {
         </Button>
 
         {isUploading ? (
-          <Text className="text-sm text-muted-foreground">
-            Upload progress: {uploadProgress}%
-          </Text>
+          <Text className="text-sm text-muted-foreground">Upload progress: {uploadProgress}%</Text>
         ) : null}
 
         {isProcessing ? (
@@ -132,10 +133,7 @@ export default function UploadsScreen() {
             <View className="mt-4 gap-2">
               <View className="flex-row items-center justify-between">
                 <Text className="font-semibold">Playback</Text>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onPress={() => setShowOverlays((prev) => !prev)}>
+                <Button variant="ghost" size="sm" onPress={() => setShowOverlays((prev) => !prev)}>
                   <Text>{showOverlays ? 'Hide overlays' : 'Show overlays'}</Text>
                 </Button>
               </View>
@@ -149,13 +147,11 @@ export default function UploadsScreen() {
                 style={{ width: '100%', aspectRatio: playbackAspectRatio }}
                 onLayout={handlePlaybackLayout}>
                 {selectedVideo ? (
-                  <Video
-                    source={{ uri: selectedVideo.uri }}
+                  <VideoView
+                    player={player}
                     style={StyleSheet.absoluteFill}
-                    resizeMode={ResizeMode.CONTAIN}
-                    useNativeControls
-                    progressUpdateIntervalMillis={100}
-                    onPlaybackStatusUpdate={handlePlaybackStatus}
+                    contentFit="contain"
+                    nativeControls
                   />
                 ) : null}
                 {canRenderOverlay ? (

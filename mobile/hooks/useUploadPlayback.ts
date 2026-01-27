@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
-import type { AVPlaybackStatus } from 'expo-av';
+import type { VideoPlayer } from 'expo-video';
 import type { ObjectDetection } from '@/types/inference';
 import type { VideoFrameResult, VideoProcessingResponse } from '@/types/video';
 import { parseTimestampSeconds } from '@/utils/videoFormatter';
@@ -19,6 +19,7 @@ type UseUploadPlaybackArgs = {
   selectedVideoUri?: string | null;
   showOverlays: boolean;
   holdMs?: number;
+  player?: VideoPlayer | null;
 };
 
 type UseUploadPlaybackResult = {
@@ -28,7 +29,6 @@ type UseUploadPlaybackResult = {
   playbackPositionMs: number;
   totalDurationMs: number | null;
   playbackView: { width: number; height: number };
-  handlePlaybackStatus: (status: AVPlaybackStatus) => void;
   handlePlaybackLayout: (event: LayoutChangeEvent) => void;
   overlayLandmarks: number[] | null;
   overlayDetections: ObjectDetection[] | null;
@@ -45,6 +45,7 @@ export const useUploadPlayback = ({
   selectedVideoUri,
   showOverlays,
   holdMs = DEFAULT_HOLD_MS,
+  player,
 }: UseUploadPlaybackArgs): UseUploadPlaybackResult => {
   const [playbackPositionMs, setPlaybackPositionMs] = useState(0);
   const [playbackDurationMs, setPlaybackDurationMs] = useState<number | null>(null);
@@ -74,13 +75,27 @@ export const useUploadPlayback = ({
     setOverlaySnapshot(null);
   }, [selectedVideoUri]);
 
-  const handlePlaybackStatus = useCallback((status: AVPlaybackStatus) => {
-    if (!status.isLoaded) return;
-    setPlaybackPositionMs(status.positionMillis ?? 0);
-    if (status.durationMillis != null) {
-      setPlaybackDurationMs(status.durationMillis);
+  useEffect(() => {
+    if (!player) return;
+    if (Number.isFinite(player.currentTime)) {
+      setPlaybackPositionMs(Math.max(0, Math.round(player.currentTime * 1000)));
     }
-  }, []);
+    if (Number.isFinite(player.duration) && player.duration > 0) {
+      setPlaybackDurationMs(Math.round(player.duration * 1000));
+    }
+    const timeSub = player.addListener('timeUpdate', (payload) => {
+      setPlaybackPositionMs(Math.max(0, Math.round(payload.currentTime * 1000)));
+    });
+    const sourceSub = player.addListener('sourceLoad', (payload) => {
+      if (Number.isFinite(payload.duration) && payload.duration > 0) {
+        setPlaybackDurationMs(Math.round(payload.duration * 1000));
+      }
+    });
+    return () => {
+      timeSub.remove();
+      sourceSub.remove();
+    };
+  }, [player]);
 
   const handlePlaybackLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -178,7 +193,6 @@ export const useUploadPlayback = ({
     playbackPositionMs,
     totalDurationMs,
     playbackView,
-    handlePlaybackStatus,
     handlePlaybackLayout,
     overlayLandmarks,
     overlayDetections,
