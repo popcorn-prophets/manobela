@@ -9,7 +9,7 @@ import { useLocationPermission } from '@/hooks/maps/useLocationPermission';
 import { useMapInitialization } from '@/hooks/maps/useMapInitialization';
 import { useMapMarkers } from '@/hooks/maps/useMapMarkers';
 import { useLocationHandlers } from '@/hooks/maps/useLocationHandlers';
-import { RouteControls } from '@/components/maps/route-control';
+import { RouteControls } from '@/components/maps/map-control';
 import { RouteInfo } from '@/components/maps/route-info';
 import { LocationSearchBoxes } from '@/components/maps/location-search-boxes';
 
@@ -78,12 +78,15 @@ export default function MapsScreen() {
 
   // Expand/collapse bottom sheet based on route presence
   useEffect(() => {
-    if (route && bottomSheetRef.current) {
-      bottomSheetRef.current.expand();
-    } else if (!route && bottomSheetRef.current) {
-      bottomSheetRef.current.close();
+    const sheet = bottomSheetRef.current;
+    if (!sheet) return;
+
+    if (route) {
+      sheet.snapToIndex(0);
+    } else {
+      sheet.close(); // closed
     }
-  }, [route, bottomSheetRef]);
+  }, [route]);
 
   // Check permission on mount
   useEffect(() => {
@@ -143,6 +146,7 @@ export default function MapsScreen() {
 
       <BottomSheet
         ref={bottomSheetRef}
+        index={-1}
         snapPoints={bottomSheetSnapPoints}
         enableDynamicSizing={false}
         backgroundStyle={{ backgroundColor: colors.background }}
