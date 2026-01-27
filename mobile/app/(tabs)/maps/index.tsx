@@ -1,6 +1,6 @@
-import { useRef, useMemo, useCallback, useEffect } from 'react';
+import { useRef, useMemo, useCallback, useEffect, useState } from 'react';
 import { View, Alert } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import { OSMView, type OSMViewRef } from 'expo-osm-sdk';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useTheme } from '@react-navigation/native';
@@ -27,6 +27,9 @@ export default function MapsScreen() {
   const mapRef = useRef<OSMViewRef>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const bottomSheetSnapPoints = useMemo(() => ['15%', '45%', '75%'], []);
+
+  // Force re-render when screen gains focus to handle map state issues
+  const [mapKey, setMapKey] = useState(0);
 
   const { getLocation } = useLocation();
 
@@ -131,6 +134,19 @@ export default function MapsScreen() {
     }
   }, [routeError]);
 
+  // Reset map when screen gains focus to handle native map lifecycle issues
+  // When navigating away and back, the native map view gets detached/reattached
+  // but doesn't properly reinitialize, causing "Map not ready" errors
+  useFocusEffect(
+    useCallback(() => {
+      // Force OSMView to remount by changing its key
+      setMapKey((prev) => prev + 1);
+
+      // Reset map ready state
+      setIsMapReady(false);
+    }, [setIsMapReady])
+  );
+
   return (
     <View className="flex-1">
       <Stack.Screen options={{ title: 'Maps' }} />
@@ -146,6 +162,7 @@ export default function MapsScreen() {
       />
 
       <OSMView
+        key={mapKey}
         ref={mapRef}
         style={{ flex: 1 }}
         initialCenter={initialCenter ?? FALLBACK_INITIAL_CENTER}
