@@ -46,7 +46,7 @@ export const useMonitoringSession = ({
     startConnection,
     cleanup,
     transportStatus,
-    connectionStatus,
+    connectionStatus, 
     dataChannelState,
     onDataMessage,
     sendDataMessage,
@@ -67,6 +67,23 @@ export const useMonitoringSession = ({
   const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
   const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
   const [sessionDurationMs, setSessionDurationMs] = useState(0);
+
+  const setStreamEnabled = useCallback(
+    (enabled: boolean) => {
+      if (!stream) return;
+      stream.getTracks().forEach((track) => {
+        track.enabled = enabled;
+      });
+    },
+    [stream]
+  );
+
+  const sendMonitoringControl = useCallback(
+    (action: 'pause' | 'resume') => {
+      sendDataMessage({ type: 'monitoring-control', action });
+    },
+    [sendDataMessage]
+  );
 
   // Sync session state with WebRTC connection
   useEffect(() => {
@@ -170,6 +187,7 @@ export const useMonitoringSession = ({
 
       if (canResume) {
         setSessionState('starting');
+      if (connectionStatus === 'connected' && clientId) {
         setStreamEnabled(true);
         sendMonitoringControl('resume');
         return;
@@ -191,9 +209,10 @@ export const useMonitoringSession = ({
     connectionStatus,
     clientId,
     dataChannelState,
-    setStreamEnabled,
     sendMonitoringControl,
     cleanup,
+    setStreamEnabled,
+    sendMonitoringControl,
     startConnection,
   ]);
 
@@ -204,6 +223,12 @@ export const useMonitoringSession = ({
     setSessionState('stopping');
     sendMonitoringControl('pause');
     setStreamEnabled(false);
+    if (connectionStatus === 'connected') {
+      sendMonitoringControl('pause');
+      setStreamEnabled(false);
+    } else {
+      cleanup();
+    }
 
     await sessionLogger.endSession();
 

@@ -24,6 +24,11 @@ export const DatabaseProvider = ({ children }: { children: React.ReactNode }) =>
   const { success, error } = useMigrations(db, migrations);
 
   useEffect(() => {
+    // Initialize user preference for session logging
+    void sessionLogger.initUserPreference();
+  }, []);
+
+  useEffect(() => {
     if (success) {
       setStatus('ready');
       setReadOnly(false);

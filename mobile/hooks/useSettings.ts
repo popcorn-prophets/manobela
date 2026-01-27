@@ -14,6 +14,7 @@ import {
   saveSettings as saveSettingsToStorage,
   type Settings,
 } from '../lib/settings';
+import { sessionLogger } from '@/services/logging/session-logger';
 
 type SettingsContextValue = {
   settings: Settings;
@@ -46,6 +47,7 @@ const useSettingsState = (): SettingsContextValue => {
       const storedSettings = await loadSettings();
       if (!mountedRef.current || id !== requestIdRef.current) return;
       setSettings(storedSettings);
+      sessionLogger.setUserLoggingEnabled(storedSettings.enableSessionLogging);
     } finally {
       if (mountedRef.current && id === requestIdRef.current) {
         setIsLoading(false);
@@ -61,6 +63,9 @@ const useSettingsState = (): SettingsContextValue => {
     if (!mountedRef.current) return;
 
     setSettings(nextSettings);
+
+    // Update sessionLogger preference when enableSessionLogging changes
+    sessionLogger.setUserLoggingEnabled(nextSettings.enableSessionLogging);
   }, []);
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import uuid from 'react-native-uuid';
 import { InferenceData } from '@/types/inference';
 import { VideoProcessingResponse } from '@/types/video';
 import { eq } from 'drizzle-orm';
+import { loadSettings } from '@/lib/settings';
 
 type NewMetric = typeof metrics.$inferInsert;
 type NewSession = typeof sessions.$inferInsert;
@@ -12,6 +13,11 @@ type NewSession = typeof sessions.$inferInsert;
  * Read-only flag
  */
 let readOnly = false;
+
+/**
+ * User preference flag for session logging
+ */
+let userLoggingEnabled = true;
 
 /**
  * In-memory buffer
@@ -65,11 +71,35 @@ export const sessionLogger = {
     readOnly = value;
   },
 
+  /** Initialize user preference from settings */
+  initUserPreference: async () => {
+    try {
+      const settings = await loadSettings();
+      userLoggingEnabled = settings.enableSessionLogging;
+    } catch (error) {
+      console.error('Failed to load session logging preference:', error);
+      userLoggingEnabled = true; // default to enabled on error
+    }
+  },
+
+  /** Update user preference for logging */
+  setUserLoggingEnabled: (value: boolean) => {
+    // If logging is being disabled, immediately clear any buffered metrics
+    if (userLoggingEnabled && !value) {
+      metricBuffer.length = 0;
+      if (flushTimer) {
+        clearTimeout(flushTimer);
+        flushTimer = null;
+      }
+    }
+    userLoggingEnabled = value;
+  },
+
   /**
    * Log metrics for the current session
    */
   logMetrics: (data: InferenceData | null) => {
-    if (readOnly) return; // blocks writes
+    if (readOnly || !userLoggingEnabled) return; // blocks writes if read-only or user disabled logging
     if (!currentSessionId || !data?.metrics) return;
 
     const now = Date.now();
@@ -127,7 +157,7 @@ export const sessionLogger = {
    * Process and log an uploaded video as a session
    */
   logUploadedVideo: async (videoResult: VideoProcessingResponse, videoName: string) => {
-    if (readOnly) return null; // blocks writes
+    if (readOnly || !userLoggingEnabled) return null; // blocks writes if read-only or user disabled logging
 
     const sessionId = uuid.v4();
     const startedAt = Date.now();
@@ -210,7 +240,7 @@ export const sessionLogger = {
    * Start a new session
    */
   startSession: async (clientId: string | null, sessionType: 'live' | 'upload' = 'live') => {
-    if (readOnly) return null; // blocks writes
+    if (readOnly || !userLoggingEnabled) return null; // blocks writes if read-only or user disabled logging
 
     const id = uuid.v4();
 
@@ -231,7 +261,18 @@ export const sessionLogger = {
    * End the current session
    */
   endSession: async () => {
-    if (readOnly) return; // block writes
+    if (readOnly || !userLoggingEnabled) {
+      // block writes if read-only or user disabled logging,
+      // but still clear local session state to avoid stale IDs
+      currentSessionId = null;
+      lastLoggedAt = 0;
+      metricBuffer.length = 0;
+      if (flushTimer) {
+        clearTimeout(flushTimer);
+        flushTimer = null;
+      }
+      return;
+    }
 
     if (!currentSessionId) return;
 

@@ -27,6 +27,7 @@ import {
   Mail,
   Bug,
   Lightbulb,
+  Database,
 } from 'lucide-react-native';
 
 const websiteUrl = process.env.EXPO_PUBLIC_WEBSITE_BASE || 'https://manobela.site';
@@ -135,6 +136,25 @@ export default function SettingsScreen() {
                 saveSettings({
                   ...settings,
                   enableHapticAlerts: v,
+                })
+              }
+            />
+          }
+        />
+      </Section>
+
+      <Section title="Privacy">
+        <SettingRow
+          icon={Database}
+          label="Session Logging"
+          value={settings.enableSessionLogging ? 'On' : 'Off'}
+          rightElement={
+            <Switch
+              checked={settings.enableSessionLogging}
+              onCheckedChange={(v) =>
+                saveSettings({
+                  ...settings,
+                  enableSessionLogging: v,
                 })
               }
             />

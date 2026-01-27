@@ -6,6 +6,7 @@ export type Settings = {
 
   enableSpeechAlerts: boolean;
   enableHapticAlerts: boolean;
+  enableSessionLogging: boolean;
 };
 
 const SETTINGS_KEY = 'app-settings';
@@ -19,6 +20,7 @@ export const defaultSettings: Settings = {
 
   enableSpeechAlerts: true,
   enableHapticAlerts: true,
+  enableSessionLogging: true,
 };
 
 const mergeSettings = (stored?: Partial<Settings>): Settings => {
@@ -34,6 +36,9 @@ const mergeSettings = (stored?: Partial<Settings>): Settings => {
       : {}),
     ...(typeof stored?.enableHapticAlerts === 'boolean'
       ? { enableHapticAlerts: stored.enableHapticAlerts }
+      : {}),
+    ...(typeof stored?.enableSessionLogging === 'boolean'
+      ? { enableSessionLogging: stored.enableSessionLogging }
       : {}),
   };
 };
