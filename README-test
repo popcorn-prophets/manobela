@@ -1,0 +1,255 @@
+<div align="center">
+
+[![Contributors](https://img.shields.io/github/contributors/popcorn-prophets/manobela?style=flat-square&color=000000)](https://github.com/popcorn-prophets/manobela/graphs/contributors)
+[![Forks](https://img.shields.io/github/forks/popcorn-prophets/manobela?style=flat-square&color=000000)](https://github.com/popcorn-prophets/manobela/network/members)
+[![Stargazers](https://img.shields.io/github/stars/popcorn-prophets/manobela?style=flat-square&color=000000)](https://github.com/popcorn-prophets/manobela/stargazers)
+[![License](https://img.shields.io/github/license/popcorn-prophets/manobela?style=flat-square&color=000000)](https://github.com/popcorn-prophets/manobela/blob/master/LICENSE)
+
+  <a href="https://github.com/popcorn-prophets/manobela">
+    <img src="docs/images/logo.png" alt="Logo" width="80" height="80">
+  </a>
+
+  <h3 align="center">Manobela</h3>
+
+  <p align="center">
+    A real-time driver monitoring system using computer vision and a mobile device
+    <br />
+    <a href="https://github.com/popcorn-prophets/manobela">View Demo</a>
+    &middot;
+    <a href="https://github.com/popcorn-prophets/manobela/issues/new?labels=bug&template=bug_report.md">Report Bug</a>
+    &middot;
+    <a href="https://github.com/popcorn-prophets/manobela/issues/new?labels=enhancement&template=feature_request.md">Request Feature</a>
+  </p>
+</div>
+
+## About The Project
+
+Manobela is a real-time **driver monitoring system** that uses computer vision to detect unsafe driving behaviors using only a mobile phone (no dedicated dash cam or in-cabin camera hardware required).
+
+The mobile app captures video and sensor data, runs on-device or backend-assisted inference, and surfaces alerts or feedback to the driver. The backend exposes APIs for configuration, analytics, and integrations.
+
+### Key Features
+
+- **Real-time monitoring**: Detect unsafe behaviors such as distraction, drowsiness, or improper phone usage.
+- **Maps integration**: Visualize trips, current vehicle position, and context for driver events directly on an in-app map.
+- **Mobile-first**: Runs on Android devices
+- **Uploads analysis**: Upload recorded drives to run the same monitoring metrics as live sessions, with per-interval summaries, thumbnails, and detailed metrics.
+- **Insights dashboard**: View session history and key driver safety KPIs (drowsiness, phone usage, gaze and head pose alerts, missing face, yawns) through cards and radar charts.
+
+## Project Structure
+
+```txt
+.
+├── backend/   # FastAPI backend (APIs, business logic, possible model serving)
+├── mobile/    # Expo React Native mobile app (driver-facing application)
+├── website/   # Optional marketing/docs site (project landing page)
+├── docs/      # Shared documentation assets (e.g. images, diagrams)
+└── ...        # Config, tooling, CI, etc.
+```
+
+- **`backend/`**: Contains the main API service, request handling, domain logic, and integration points (databases, external services, etc.).
+- **`mobile/`**: Contains the React Native app with screens, navigation, hooks, and services, including the camera/monitoring flows and settings (e.g. API URLs, maps).
+- **`website/`**: serves as a public-facing site for the project where you can download it
+
+For more detailed module-specific documentation, see:
+
+- `backend/README.md` (backend service)
+- `mobile/README.md` (mobile app)
+- `website/README.md` (website)
+
+## Getting Started
+
+These instructions help you set up a development environment on your local machine.
+
+### Prerequisites
+
+- **Backend**
+  - Python **3.11+**
+  - [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
+
+- **Frontend / Mobile**
+  - Node.js **18+**
+  - [`pnpm`](https://pnpm.io/installation)
+  - [Android Studio](https://developer.android.com/studio) with an Android emulator **or** a physical Android device
+
+- **Tooling (recommended)**
+  - [`pipx`](https://pipx.pypa.io/stable/installation/) for installing global Python tools
+  - [`pre-commit`](https://pre-commit.com/) for git hooks
+
+### Repository Setup
+
+#### 1. Clone the repository
+
+```sh
+git clone git@github.com:popcorn-prophets/manobela.git
+cd manobela
+```
+
+#### 2. Install backend dependencies
+
+```sh
+cd backend
+uv sync
+```
+
+This will create and manage a virtual environment (typically `.venv/`) and install backend dependencies.
+
+#### 3. Install mobile dependencies
+
+From the project root:
+
+```sh
+cd mobile
+pnpm install
+```
+
+### Environment Configuration
+
+Both the backend and mobile app use `.env` files for configuration.
+
+#### 1. Create `.env` files
+
+In **both** `backend/` and `mobile/`:
+
+```sh
+cp .env.example .env
+```
+
+Then open each `.env` and update the variables with values appropriate for your environment.
+
+Typical variables might include (examples only, check `.env.example` for the actual list):
+
+### Pre-commit Hooks (Recommended)
+
+To keep the codebase consistent and catch issues early, install and enable [`pre-commit`](https://pre-commit.com/) hooks:
+
+```sh
+pipx install pre-commit
+pre-commit install --install-hooks
+```
+
+Hooks typically run formatting, linting, and basic checks on each commit. If a hook fails, fix the reported issues and re-commit.
+
+## Running on a Physical Android Device
+
+If you want to run the mobile app on a physical Android device instead of an emulator:
+
+### Enable Developer Options
+
+1. Open **Settings → About Phone**
+2. Tap **Build Number** **7 times**
+3. You should see: _"You are now a developer"_
+
+---
+
+### Option A: USB Debugging (Recommended)
+
+1. On your phone, go to **Settings → Developer Options**
+2. Enable **USB Debugging**
+3. Connect your phone to your laptop using a USB cable
+4. Verify the device connection:
+
+```sh
+adb devices
+```
+
+If your device appears in the list, you are ready.
+
+### Option B: Wireless ADB (Requires Android 11+)
+
+> Requires Android 11+ and both the laptop and phone on the same Wi‑Fi network.
+
+1. On your phone, go to **Settings → Developer Options**
+2. Enable **Wireless Debugging**
+3. Tap **Wireless Debugging → Pair device with pairing code**
+4. Note the **IP address**, **pairing port**, and **pairing code**
+
+#### Pair your device
+
+```sh
+adb pair <ip-address>:<pairing-port>
+adb connect <ip-address>:<adb-port>
+```
+
+#### Verify the device
+
+```sh
+adb devices
+```
+
+You should see your device listed as connected.
+
+#### Reverse backend port (for device access to local backend)
+
+From the project root:
+
+```sh
+cd backend
+adb reverse tcp:8000 tcp:8000
+```
+
+This forwards the device’s port `8000` to your local machine’s port `8000`, so the mobile app can call the backend using `http://localhost:8000`
+
+## Running the Application
+
+You typically run the **backend** and **mobile app** in separate terminals.
+
+### 1. Start the backend
+
+From `backend/`:
+
+```sh
+cd backend
+source .venv/bin/activate   # if uv created a venv here
+python run.py               # main entrypoint
+# or:
+# uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+This should start a FastAPI server, often exposing interactive docs at `http://localhost:8000/docs`.
+
+### 2. Start the mobile app
+
+From `mobile/`:
+
+```sh
+cd mobile
+pnpm android        # run on Android emulator or connected device
+
+# for remote/physical devices (e.g. when tunneling is needed):
+pnpm dev --tunnel
+```
+
+Ensure your `API_BASE_URL` (or equivalent) in the mobile `.env` matches how the backend is reachable from the emulator/device.
+
+If you run into an issue not covered here, please [open an issue](https://github.com/popcorn-prophets/manobela/issues) with details about your environment and reproduction steps.
+
+## Contributing
+
+We welcome contributions from the community!
+
+Basic flow:
+
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/my-awesome-feature`.
+3. Make your changes.
+4. Run tests, linters, and pre-commit hooks locally.
+5. Commit with a clear message: `git commit -m "feat: add my awesome feature"`.
+6. Push the branch: `git push origin feature/my-awesome-feature`.
+7. Open a Pull Request and describe your changes.
+
+By contributing, you agree to follow the project’s [Code of Conduct](CODE_OF_CONDUCT.md) and that your contributions will be licensed under the project’s [LICENSE](LICENSE).
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## Contact
+
+- **Maintainer**: see GitHub contributors and issues
+
+Choose any of the following emails
+
+- **Email (Code of Conduct contact)**
+  `maagmaandrian@gmail.com`
+  emails...
