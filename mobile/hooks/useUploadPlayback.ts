@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import type { VideoPlayer } from 'expo-video';
 import type { ObjectDetection } from '@/types/inference';
@@ -25,6 +25,7 @@ type UseUploadPlaybackArgs = {
 type UseUploadPlaybackResult = {
   groups: VideoProcessingResponse['groups'];
   activeGroup: VideoProcessingResponse['groups'][number] | null;
+  activeFrame: FrameWithTimestamp | null;
   playbackAspectRatio: number;
   playbackPositionMs: number;
   totalDurationMs: number | null;
@@ -212,6 +213,7 @@ export const useUploadPlayback = ({
   return {
     groups,
     activeGroup,
+    activeFrame,
     playbackAspectRatio,
     playbackPositionMs,
     totalDurationMs,

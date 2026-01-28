@@ -145,7 +145,7 @@ export const useVideoUpload = (apiBaseUrl: string): UseVideoUploadResult => {
             resolution: frame.resolution,
             face_landmarks: frame.face_landmarks,
             object_detections: frame.object_detections,
-            metrics: null,
+            metrics: frame.metrics,
             thumbnail_base64: null,
           }));
           setResult({ ...parsed, frames: trimmedFrames });

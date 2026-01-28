@@ -30,7 +30,7 @@ export function LocationSearchBoxes({
     <View className={cn('z-10', className)}>
       <View className="overflow-hidden rounded-lg bg-background shadow-lg">
         {/* Start */}
-        <View className="flex-row items-center border-b border-border bg-background">
+        <View className="flex-row items-start border-b border-border bg-background">
           <View className="py-3 pl-4">
             <Target size={16} color={colors.primary} />
           </View>
@@ -40,7 +40,7 @@ export function LocationSearchBoxes({
               value={startLocation?.displayName}
               placeholder="Choose starting point"
               onLocationSelected={onStartLocationSelected}
-              onClear={() => onStartLocationSelected(null)} // <-- fixed
+              onClear={() => onStartLocationSelected(null)}
             />
           </View>
 
@@ -53,7 +53,7 @@ export function LocationSearchBoxes({
         </View>
 
         {/* Destination */}
-        <View className="flex-row bg-background">
+        <View className="flex-row items-start bg-background">
           <View className="py-3 pl-4">
             <MapPin size={16} color={colors.destructive} />
           </View>

@@ -4,12 +4,14 @@ import { SessionState } from '@/hooks/useMonitoringSession';
 import { CameraRecordButton } from './camera-record-button';
 import { FacialLandmarkOverlay } from './facial-landmark-overlay';
 import { ObjectDetectionOverlay } from './object-detection-overlay';
+import { OverlayToggleButton } from './overlay-toggle-button';
+import { FaceMissingIndicator } from './face-missing-indicator';
 import { InferenceData, ObjectDetection } from '@/types/inference';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Eye, EyeOff, Frown, Meh, ScanFace } from 'lucide-react-native';
-import { useTheme } from '@react-navigation/native';
+import { cn } from '@/lib/utils';
 import { SpinningLogo } from './spinning-logo';
+import { UserIcon } from 'lucide-react-native';
 
 type MediaStreamViewProps = {
   stream: MediaStream | null;
@@ -39,8 +41,6 @@ export const MediaStreamView = ({
   onRecalibrateHeadPose,
   recalibrateEnabled = true,
 }: MediaStreamViewProps) => {
-  const { colors } = useTheme();
-
   const [viewDimensions, setViewDimensions] = useState({ width: 0, height: 0 });
   const [showOverlay, setShowOverlay] = useState(true);
   const [smoothedDetections, setSmoothedDetections] = useState<ObjectDetection[] | null>(null);
@@ -119,6 +119,7 @@ export const MediaStreamView = ({
         mirror={mirror}
       />
 
+      {/* Facial landmarks overlay */}
       {showLandmarks && (
         <FacialLandmarkOverlay
           landmarks={landmarks}
@@ -130,6 +131,7 @@ export const MediaStreamView = ({
         />
       )}
 
+      {/* Object detection overlay */}
       {showDetections && (
         <ObjectDetectionOverlay
           detections={smoothedDetections}
@@ -148,66 +150,60 @@ export const MediaStreamView = ({
         </View>
       )}
 
-      {/* Overlay record button */}
-      <View className="absolute bottom-3 left-0 right-0 items-center">
-        <CameraRecordButton
-          isRecording={sessionState === 'active'}
-          disabled={!hasCamera || sessionState === 'starting' || sessionState === 'stopping'}
-          onPress={onToggle}
+      {/* Bottom overlay */}
+      <View className="absolute bottom-3 left-0 right-0 z-10 flex-row items-center justify-between px-4">
+        {/* Overlay toggle */}
+        <OverlayToggleButton
+          showOverlay={showOverlay}
+          onToggle={() => setShowOverlay((v) => !v)}
+          color="white"
         />
-      </View>
 
-      {canRecalibrate && (
+        {/* Record button */}
+        <View className="items-center">
+          <CameraRecordButton
+            isRecording={sessionState === 'active'}
+            disabled={!hasCamera || sessionState === 'starting' || sessionState === 'stopping'}
+            onPress={onToggle}
+          />
+        </View>
+
+        {/* Calibration button */}
         <Pressable
           onPress={onRecalibrateHeadPose}
           accessibilityRole="button"
           accessibilityLabel="Recalibrate head pose"
-          accessibilityState={{ disabled: !recalibrateActive }}
-          disabled={!recalibrateActive}
-          style={[styles.recalibrateButton, !recalibrateActive && styles.recalibrateDisabled]}>
-          <View style={styles.recalibrateRing}>
-            <ScanFace size={22} color="white" />
-          </View>
+          accessibilityState={{ disabled: canRecalibrate && !recalibrateActive }}
+          disabled={canRecalibrate && !recalibrateActive}
+          className={cn(
+            'h-9 w-9 items-center justify-center p-3',
+            !recalibrateActive && 'opacity-45'
+          )}>
+          <UserIcon size={24} color="white" />
         </Pressable>
-      )}
+      </View>
 
       {/* Top overlay */}
-      <View className="absolute left-0 right-0 top-3 z-10 flex-row items-center justify-between px-3">
-        <View className="h-9 w-9 items-center justify-center">
-          {sessionState !== 'active' ? (
-            <Meh size={24} color="white" />
-          ) : inferenceData?.metrics?.face_missing ? (
-            <Frown size={24} color={colors.destructive} />
-          ) : (
-            <ScanFace size={24} color="white" />
-          )}
+      <View className="absolute left-0 right-0 top-3 z-10 flex-row items-center justify-between px-4">
+        {/* Duration */}
+        <View className="min-w-[64px] flex-row items-center justify-center rounded-full bg-black/40 px-2 py-1">
+          <View className="mr-1 h-2 w-2 rounded-full bg-red-500" />
+          <Text className="text-center text-xs text-white">
+            {sessionState === 'active' ? formattedDuration : '00:00'}
+          </Text>
         </View>
 
-        <View className="items-center justify-center">
-          {sessionState === 'active' && (
-            <View className="mb-1 flex-row items-center rounded-full bg-black/40 px-2 py-1">
-              <View className="mr-1 h-2 w-2 rounded-full bg-red-500" />
-              <Text className="text-xs text-white">{formattedDuration}</Text>
-            </View>
-          )}
-          {inferenceData?.resolution && (
-            <View className="rounded-full bg-black/40 px-2 py-1">
-              <Text className="text-xs text-white">
-                {inferenceData.resolution.width}x{inferenceData.resolution.height}
-              </Text>
-            </View>
-          )}
-        </View>
+        {/* Face missing indicator */}
+        <FaceMissingIndicator
+          isActive={sessionState === 'active'}
+          faceMissing={inferenceData?.metrics?.face_missing ?? false}
+        />
 
-        <View className="h-9 w-9 items-center justify-center">
-          <Pressable
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={showOverlay ? 'Hide overlays' : 'Show overlays'}
-            onPress={() => setShowOverlay((v) => !v)}
-            className="h-9 w-9 items-center justify-center">
-            {showOverlay ? <Eye size={24} color="white" /> : <EyeOff size={24} color="white" />}
-          </Pressable>
+        {/* Resolution */}
+        <View className="min-w-[64px] flex-row items-center justify-center rounded-full bg-black/40 px-2 py-1">
+          <Text className="text-center text-xs text-white">
+            {inferenceData?.resolution?.width ?? 'W'}x{inferenceData?.resolution?.height ?? 'H'}
+          </Text>
         </View>
       </View>
     </View>
@@ -226,28 +222,3 @@ const formatDuration = (durationMs: number) => {
 
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
-// This can be transfered to components, but too lazy
-const styles = StyleSheet.create({
-  recalibrateButton: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
-    width: 70,
-    height: 70,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recalibrateRing: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-  },
-  recalibrateDisabled: {
-    opacity: 0.45,
-  },
-});
