@@ -29,7 +29,6 @@ const stats = [
     label: 'Distraction-Related Crashes',
     description: 'Of crashes involve driver distraction, like phone use',
   },
-  ,
 ];
 
 export function StatsSection() {
