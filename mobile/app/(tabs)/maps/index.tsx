@@ -49,6 +49,7 @@ export default function MapsScreen() {
   // Initial map setup
   const {
     initialCenter,
+    setInitialCenter,
     isMapReady,
     setIsMapReady,
     startLocation,
@@ -269,6 +270,13 @@ export default function MapsScreen() {
           console.log('Marker pressed:', id);
         }}
         onUserLocationChange={(location) => {
+          // Keep track of the last known user location so that when
+          // the map remounts (on tab focus), we re-center to this
+          // location instead of falling back to the NYC default.
+          setInitialCenter({
+            latitude: location.latitude,
+            longitude: location.longitude,
+          });
           handleLocationUpdate(location);
         }}
         styleUrl={

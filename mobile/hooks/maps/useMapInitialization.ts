@@ -47,6 +47,7 @@ export const useMapInitialization = ({
 
   return {
     initialCenter,
+    setInitialCenter,
     isMapReady,
     setIsMapReady,
     startLocation,
