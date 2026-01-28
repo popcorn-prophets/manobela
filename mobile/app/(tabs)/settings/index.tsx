@@ -28,6 +28,7 @@ import {
   Bug,
   Lightbulb,
   Database,
+  Link,
 } from 'lucide-react-native';
 
 const websiteUrl = process.env.EXPO_PUBLIC_WEBSITE_BASE || 'https://manobela.site';
@@ -155,6 +156,25 @@ export default function SettingsScreen() {
                 saveSettings({
                   ...settings,
                   enableSessionLogging: v,
+                })
+              }
+            />
+          }
+        />
+      </Section>
+
+      <Section title="Navigation">
+        <SettingRow
+          icon={Link}
+          label="Auto-Coordination"
+          value={settings.enableAutoCoordination ? 'On' : 'Off'}
+          rightElement={
+            <Switch
+              checked={settings.enableAutoCoordination}
+              onCheckedChange={(v) =>
+                saveSettings({
+                  ...settings,
+                  enableAutoCoordination: v,
                 })
               }
             />

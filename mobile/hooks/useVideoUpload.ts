@@ -117,11 +117,13 @@ export const useVideoUpload = (apiBaseUrl: string): UseVideoUploadResult => {
       const clampedProgress = Math.min(100, Math.max(0, progress));
       setUploadProgress(clampedProgress);
       if (clampedProgress >= 100) {
+        setIsUploading(false);
         setIsProcessing(true);
       }
     };
 
     xhr.upload.onload = () => {
+      setIsUploading(false);
       setIsProcessing(true);
     };
 
@@ -143,7 +145,7 @@ export const useVideoUpload = (apiBaseUrl: string): UseVideoUploadResult => {
             resolution: frame.resolution,
             face_landmarks: frame.face_landmarks,
             object_detections: frame.object_detections,
-            metrics: null,
+            metrics: frame.metrics,
             thumbnail_base64: null,
           }));
           setResult({ ...parsed, frames: trimmedFrames });

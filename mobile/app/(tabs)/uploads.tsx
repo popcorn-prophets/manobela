@@ -1,24 +1,25 @@
-import { View, ActivityIndicator, ScrollView, Pressable, Image, StyleSheet } from 'react-native';
-
+import { View, ScrollView } from 'react-native';
 import { useMemo, useState } from 'react';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { useVideoPlayer } from 'expo-video';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { FacialLandmarkOverlay } from '@/components/facial-landmark-overlay';
-import { ObjectDetectionOverlay } from '@/components/object-detection-overlay';
-
+import { SpinningLogo } from '@/components/spinning-logo';
 import { useSettings } from '@/hooks/useSettings';
 import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { useUploadPlayback } from '@/hooks/useUploadPlayback';
-import {
-  formatBytes,
-  formatDuration,
-  formatJsonFull,
-  formatJsonPreview,
-} from '@/utils/videoFormatter';
-import { formatPlaybackTime } from '@/utils/uploadPlayback';
+import { formatBytes, formatDuration } from '@/utils/videoFormatter';
+import { FileVideoCamera, UploadCloud } from 'lucide-react-native';
+import { useTheme } from '@react-navigation/native';
+import { UploadPlayback } from '@/components/upload-playback';
+import { MetricsDisplay } from '@/components/metrics/metrics-display';
+import { SessionState } from '@/hooks/useMonitoringSession';
+import { MetricsOutput } from '@/types/metrics';
+
+const BIG_FILE_SIZE_MB = 50;
 
 export default function UploadsScreen() {
+  const { colors } = useTheme();
+
   const { settings } = useSettings();
   const apiBaseUrl = useMemo(
     () => settings.apiBaseUrl.trim().replace(/\/$/, ''),
@@ -36,17 +37,12 @@ export default function UploadsScreen() {
     handleUpload,
   } = useVideoUpload(apiBaseUrl);
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
   const [showOverlays, setShowOverlays] = useState(true);
   const player = useVideoPlayer(selectedVideo?.uri ?? null, (player) => {
     player.timeUpdateEventInterval = 0.05;
   });
   const {
-    groups,
-    activeGroup,
     playbackAspectRatio,
-    playbackPositionMs,
-    totalDurationMs,
     playbackView,
     handlePlaybackLayout,
     overlayLandmarks,
@@ -54,7 +50,7 @@ export default function UploadsScreen() {
     overlayResolution,
     canRenderOverlay,
     hasOverlayData,
-    groupIntervalSec,
+    activeFrame,
   } = useUploadPlayback({
     result,
     selectedVideoUri: selectedVideo?.uri,
@@ -63,52 +59,101 @@ export default function UploadsScreen() {
     holdMs: 200,
   });
 
-  return (
-    <ScrollView className="flex-1 px-4 py-6">
-      <Text variant="h3" className="mb-2">
-        Uploads
-      </Text>
-      <Text className="text-sm text-muted-foreground">
-        Upload a recorded drive to run the same monitoring metrics as a live session.
-      </Text>
+  // Determine session state for metrics display
+  // Show as active whenever we have processed results, not just when playing
+  const sessionState: SessionState = useMemo(() => {
+    if (isUploading || isProcessing) return 'starting';
+    // Keep metrics active as long as we have result data
+    if (result) return 'active';
+    return 'idle';
+  }, [isUploading, isProcessing, result]);
 
-      <View className="mt-6 gap-3">
+  // Get current metrics from active playback frame
+  // Fallback to first frame's metrics if no active frame is available yet
+  const currentMetrics = useMemo(() => {
+    if (activeFrame?.metrics) {
+      return activeFrame.metrics as unknown as MetricsOutput;
+    }
+    // Fallback to first frame if available
+    if (result?.frames?.length && result.frames[0]?.metrics) {
+      return result.frames[0].metrics as unknown as MetricsOutput;
+    }
+    return null;
+  }, [activeFrame, result]);
+
+  return (
+    <ScrollView className="flex-1 px-2 py-1" contentContainerStyle={{ flexGrow: 1 }}>
+      <View className="gap-3">
+        {result && (
+          <>
+            <UploadPlayback
+              result={result}
+              selectedVideoUri={selectedVideo?.uri}
+              player={player}
+              playbackAspectRatio={playbackAspectRatio}
+              playbackView={playbackView}
+              handlePlaybackLayout={handlePlaybackLayout}
+              overlayLandmarks={overlayLandmarks}
+              overlayDetections={overlayDetections}
+              overlayResolution={overlayResolution}
+              canRenderOverlay={canRenderOverlay}
+              hasOverlayData={hasOverlayData}
+              showOverlays={showOverlays}
+              onToggleOverlays={setShowOverlays}
+              faceMissing={
+                (currentMetrics as unknown as { face_missing?: boolean })?.face_missing ?? false
+              }
+            />
+
+            <MetricsDisplay sessionState={sessionState} metricsOutput={currentMetrics} />
+          </>
+        )}
+
         <Button onPress={handleSelectVideo} variant="secondary">
+          <FileVideoCamera color={colors.primary} size={18} />
           <Text>Select Video</Text>
         </Button>
 
         {selectedVideo ? (
-          <View className="rounded-md border border-border bg-muted/40 p-4">
-            <Text className="font-semibold">{selectedVideo.name}</Text>
-            <Text className="text-sm text-muted-foreground">
-              Duration: {formatDuration(selectedVideo.durationMs)}
-            </Text>
-            <Text className="text-sm text-muted-foreground">
-              Size: {formatBytes(selectedVideo.sizeBytes)}
-            </Text>
-            {selectedVideo.sizeBytes > 50 * 1024 * 1024 ? (
-              <Text className="mt-1 text-sm text-amber-500">
+          <View className="rounded-md border border-border bg-muted/40 p-3">
+            <Text className="text-sm font-semibold">{selectedVideo.name}</Text>
+            <View className="flex flex-row gap-3">
+              <Text className="text-xs text-muted-foreground">
+                Duration: {formatDuration(selectedVideo.durationMs)}
+              </Text>
+              <Text className="text-xs text-muted-foreground">
+                Size: {formatBytes(selectedVideo.sizeBytes)}
+              </Text>
+            </View>
+            {selectedVideo.sizeBytes > BIG_FILE_SIZE_MB * 1024 * 1024 ? (
+              <Text className="mt-1 text-xs text-amber-600">
                 Large file detected. Consider compressing for faster uploads.
               </Text>
             ) : null}
           </View>
         ) : (
-          <Text className="text-sm text-muted-foreground">
-            No video selected yet. Choose one to preview details before uploading.
+          <Text className="text-xs text-muted-foreground">
+            Upload a recorded drive to check its metrics just like you would in a live session.
           </Text>
         )}
 
-        <Button onPress={handleUpload} disabled={!selectedVideo || isUploading}>
+        <Button onPress={handleUpload} disabled={!selectedVideo || isUploading || isProcessing}>
+          <UploadCloud color={colors.background} size={18} />
           <Text>{isUploading ? 'Uploading...' : 'Upload & Analyze'}</Text>
         </Button>
 
         {isUploading ? (
-          <Text className="text-sm text-muted-foreground">Upload progress: {uploadProgress}%</Text>
+          <View className="flex-row items-center gap-2">
+            <SpinningLogo width={20} height={20} />
+            <Text className="text-sm text-muted-foreground">
+              Upload progress: {uploadProgress}%
+            </Text>
+          </View>
         ) : null}
 
         {isProcessing ? (
           <View className="flex-row items-center gap-2">
-            <ActivityIndicator />
+            <SpinningLogo width={20} height={20} />
             <Text className="text-sm text-muted-foreground">
               Upload complete. Processing video frames...
             </Text>
@@ -117,157 +162,21 @@ export default function UploadsScreen() {
 
         {error ? <Text className="text-sm text-destructive">Error: {error}</Text> : null}
 
-        {result ? (
-          <View className="rounded-md border border-border bg-background p-4">
-            <Text className="font-semibold">Processing Summary</Text>
-            <Text className="text-sm text-muted-foreground">
-              Duration: {result.video_metadata.duration_sec.toFixed(1)}s
+        {result && (
+          <View className="flex flex-row gap-3 rounded-md border border-border bg-muted/40 p-2">
+            <Text className="text-xs text-muted-foreground">
+              Frames Processed: {result.video_metadata.total_frames_processed}
             </Text>
-            <Text className="text-sm text-muted-foreground">
-              Frames processed: {result.video_metadata.total_frames_processed}
-            </Text>
-            <Text className="text-sm text-muted-foreground">FPS: {result.video_metadata.fps}</Text>
-            <Text className="text-sm text-muted-foreground">
-              Resolution: {result.video_metadata.resolution.width} x{' '}
+            <Text className="text-xs text-muted-foreground">FPS: {result.video_metadata.fps}</Text>
+            <Text className="text-xs text-muted-foreground">
+              Resolution: {result.video_metadata.resolution.width}x
               {result.video_metadata.resolution.height}
             </Text>
-            <View className="mt-4 gap-2">
-              <View className="flex-row items-center justify-between">
-                <Text className="font-semibold">Playback</Text>
-                <Button variant="ghost" size="sm" onPress={() => setShowOverlays((prev) => !prev)}>
-                  <Text>{showOverlays ? 'Hide overlays' : 'Show overlays'}</Text>
-                </Button>
-              </View>
-              <Text className="text-xs text-muted-foreground">
-                {result.video_metadata.fps
-                  ? `Overlays sampled at ${result.video_metadata.fps} fps.`
-                  : 'Overlays sampled per frame.'}
-              </Text>
-              <View
-                className="relative overflow-hidden rounded-md border border-border bg-black"
-                style={{ width: '100%', aspectRatio: playbackAspectRatio }}
-                onLayout={handlePlaybackLayout}>
-                {selectedVideo ? (
-                  <VideoView
-                    player={player}
-                    style={StyleSheet.absoluteFill}
-                    contentFit="contain"
-                    nativeControls
-                  />
-                ) : null}
-                {canRenderOverlay ? (
-                  <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-                    {overlayLandmarks ? (
-                      <FacialLandmarkOverlay
-                        landmarks={overlayLandmarks}
-                        videoWidth={overlayResolution?.width ?? 0}
-                        videoHeight={overlayResolution?.height ?? 0}
-                        viewWidth={playbackView.width}
-                        viewHeight={playbackView.height}
-                        mirror={false}
-                      />
-                    ) : null}
-                    {overlayDetections ? (
-                      <ObjectDetectionOverlay
-                        detections={overlayDetections}
-                        videoWidth={overlayResolution?.width ?? 0}
-                        videoHeight={overlayResolution?.height ?? 0}
-                        viewWidth={playbackView.width}
-                        viewHeight={playbackView.height}
-                        mirror={false}
-                      />
-                    ) : null}
-                  </View>
-                ) : null}
-              </View>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-xs text-muted-foreground">
-                  {formatPlaybackTime(playbackPositionMs)}
-                  {totalDurationMs != null ? ` / ${formatPlaybackTime(totalDurationMs)}` : ''}
-                </Text>
-                {activeGroup ? (
-                  <Text className="text-xs text-muted-foreground">
-                    Window {formatPlaybackTime(activeGroup.start_sec * 1000)} -{' '}
-                    {formatPlaybackTime(activeGroup.end_sec * 1000)}
-                  </Text>
-                ) : null}
-              </View>
-              {!hasOverlayData ? (
-                <Text className="text-xs text-muted-foreground">
-                  No overlay data available for this frame.
-                </Text>
-              ) : null}
-            </View>
-            <Text className="mt-3 font-semibold">Frame Results</Text>
-            <Text className="text-xs text-muted-foreground">
-              {groupIntervalSec > 0
-                ? `Grouped by ${groupIntervalSec}-second windows.`
-                : 'Grouped by time windows.'}{' '}
-              Each box shows the aggregate result for the interval.
-            </Text>
-            <View className="mt-2 gap-3">
-              {groups.map((group) => (
-                <View
-                  key={`group-${group.bucket_index}`}
-                  className="rounded-md border border-border bg-muted/30 p-3">
-                  <Pressable
-                    onPress={() =>
-                      setExpandedGroups((prev) => ({
-                        ...prev,
-                        [group.bucket_index]: !prev[group.bucket_index],
-                      }))
-                    }
-                    className="gap-1">
-                    <Text className="text-sm font-semibold">
-                      {Math.floor(group.start_sec)}s - {Math.floor(group.end_sec)}s
-                    </Text>
-                    <Text className="text-xs text-muted-foreground">
-                      Frames: {group.frame_count} -{' '}
-                      {expandedGroups[group.bucket_index] ? 'Hide details' : 'Show details'}
-                    </Text>
-                  </Pressable>
-                  <View className="mt-2 gap-1">
-                    <Text className="text-xs text-muted-foreground">
-                      Resolution:{' '}
-                      {group.aggregate.resolution
-                        ? `${group.aggregate.resolution.width} x ${group.aggregate.resolution.height}`
-                        : 'Unknown'}
-                    </Text>
-                    <Text className="text-xs text-muted-foreground">
-                      Face landmarks: {group.aggregate.face_landmarks ? 'averaged' : 'null'}
-                    </Text>
-                    <Text className="text-xs text-muted-foreground">
-                      Object detections:{' '}
-                      {group.aggregate.object_detections
-                        ? `${group.aggregate.object_detections.length} unique`
-                        : 'null'}
-                    </Text>
-                    <Text className="text-xs text-muted-foreground">
-                      Metrics: {formatJsonPreview(group.aggregate.metrics)}
-                    </Text>
-                    {expandedGroups[group.bucket_index] ? (
-                      <View className="mt-2 gap-2">
-                        {group.aggregate.thumbnail_base64 ? (
-                          <Image
-                            source={{
-                              uri: `data:image/jpeg;base64,${group.aggregate.thumbnail_base64}`,
-                            }}
-                            className="h-40 w-full rounded-md"
-                            resizeMode="cover"
-                          />
-                        ) : null}
-                        <Text className="font-mono text-xs text-muted-foreground">
-                          Metrics (full):{'\n'}
-                          {formatJsonFull(group.aggregate.metrics)}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              ))}
-            </View>
           </View>
-        ) : null}
+        )}
+
+        {/* Spacer to avoid content being hidden behind bottom navigation */}
+        <View className="h-16" />
       </View>
     </ScrollView>
   );

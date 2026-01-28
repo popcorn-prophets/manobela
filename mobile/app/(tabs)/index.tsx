@@ -7,16 +7,28 @@ import { useMonitoringSession } from '@/hooks/useMonitoringSession';
 import { useAlerts } from '@/hooks/useAlerts';
 import { MediaStreamView } from '@/components/media-stream-view';
 import { ConnectionStatus } from '@/components/connection-status';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { MetricsDisplay } from '@/components/metrics/metrics-display';
 import { Text } from '@/components/ui/text';
-
 import { useSettings } from '@/hooks/useSettings';
+import { useCoordinationStore } from '@/stores/coordinationStore';
+import { speak } from '@/services/speech';
 
 export default function MonitorScreen() {
   useKeepAwake();
 
+  const router = useRouter();
   const { settings } = useSettings();
+  const {
+    shouldStartMonitoring,
+    shouldStopMonitoring,
+    clearMonitoringRequest,
+    clearMonitoringStopRequest,
+    requestNavigationStart,
+    requestNavigationStop,
+    setCoordinating,
+  } = useCoordinationStore();
+
   const wsUrl = useMemo(() => {
     const baseUrl = settings.wsBaseUrl || process.env.EXPO_PUBLIC_WS_BASE || '';
     return baseUrl ? `${baseUrl}/driver-monitoring` : '';
@@ -55,13 +67,70 @@ export default function MonitorScreen() {
   }, []);
   useLowBattery(0.25, handleLowBattery, sessionState === 'active');
 
+  const handleStop = useCallback(() => {
+    stop();
+
+    // Auto-stop navigation when monitoring stops (if enabled)
+    if (settings.enableAutoCoordination && !useCoordinationStore.getState().isCoordinating) {
+      setCoordinating(true);
+      requestNavigationStop();
+      // Reset coordination flag after a delay
+      setTimeout(() => setCoordinating(false), 1000);
+    }
+  }, [stop, settings.enableAutoCoordination, requestNavigationStop, setCoordinating]);
+
   const handleToggle = useCallback(() => {
     if (sessionState === 'idle') {
       start();
     } else if (sessionState === 'active') {
+      handleStop();
+    }
+  }, [sessionState, start, handleStop]);
+
+  // Auto-start navigation when monitoring starts (if enabled)
+  // Also check if navigation is already active to avoid unnecessary coordination
+  useEffect(() => {
+    if (
+      settings.enableAutoCoordination &&
+      sessionState === 'active' &&
+      !useCoordinationStore.getState().isCoordinating &&
+      !useCoordinationStore.getState().shouldStartNavigation
+    ) {
+      setCoordinating(true);
+      requestNavigationStart();
+      // Navigate to maps tab
+      router.push('/(tabs)/maps');
+      // Reset coordination flag after a delay
+      setTimeout(() => setCoordinating(false), 1000);
+      // Play audio prompt if speech alerts are enabled
+      if (settings.enableSpeechAlerts) {
+        speak('Where do you want to go?');
+      }
+    }
+  }, [
+    sessionState,
+    settings.enableAutoCoordination,
+    requestNavigationStart,
+    setCoordinating,
+    router,
+    settings.enableSpeechAlerts,
+  ]);
+
+  // Listen for requests to start monitoring from navigation
+  useEffect(() => {
+    if (shouldStartMonitoring && sessionState === 'idle') {
+      clearMonitoringRequest();
+      start();
+    }
+  }, [shouldStartMonitoring, sessionState, start, clearMonitoringRequest]);
+
+  // Listen for requests to stop monitoring from navigation
+  useEffect(() => {
+    if (shouldStopMonitoring && sessionState === 'active') {
+      clearMonitoringStopRequest();
       stop();
     }
-  }, [sessionState, start, stop]);
+  }, [shouldStopMonitoring, sessionState, stop, clearMonitoringStopRequest]);
 
   const aspectRatio = useMemo(() => {
     const width = inferenceData?.resolution?.width ?? 320;

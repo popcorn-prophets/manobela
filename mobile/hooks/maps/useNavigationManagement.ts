@@ -21,6 +21,8 @@ interface NavigationState {
 interface UseNavigationManagementProps {
   mapRef: React.RefObject<OSMViewRef | null>;
   route: Route | null;
+  isMapReady: boolean;
+  onNavigationComplete?: () => void;
 }
 
 // Calculate bearing between two coordinates
@@ -52,7 +54,12 @@ const calculateDistance = (from: Coordinate, to: Coordinate): number => {
   return R * c; // Distance in meters
 };
 
-export const useNavigationManagement = ({ mapRef, route }: UseNavigationManagementProps) => {
+export const useNavigationManagement = ({
+  mapRef,
+  route,
+  isMapReady,
+  onNavigationComplete,
+}: UseNavigationManagementProps) => {
   const [navigationState, setNavigationState] = useState<NavigationState>({
     isNavigating: false,
     currentLocation: null,
@@ -65,6 +72,7 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
 
   const isMountedRef = useRef(true);
   const navigationArrowIdRef = useRef<string>('navigation-arrow');
+  const stopNavigationRef = useRef<(() => Promise<void>) | null>(null);
 
   // Format distance in meters to human-readable string
   const formatDistanceMeters = useCallback((meters: number): string => {
@@ -191,9 +199,23 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
         const progress = totalDistance > 0 ? 1 - distance / totalDistance : 0;
         const nextTurnInstruction = getNextTurnInstruction(currentStepIndex);
 
+        // Check if destination reached - auto-stop navigation
+        if (distance < 50 && progress > 0.95) {
+          // Stop navigation after a short delay to show arrival message
+          setTimeout(() => {
+            if (isMountedRef.current) {
+              if (onNavigationComplete) {
+                onNavigationComplete();
+              } else if (stopNavigationRef.current) {
+                stopNavigationRef.current();
+              }
+            }
+          }, 2000);
+        }
+
         // Update camera to follow user
         requestAnimationFrame(() => {
-          if (!isMountedRef.current || !mapRef.current) return;
+          if (!isMountedRef.current || !mapRef.current || !isMapReady) return;
 
           // Calculate bearing to next step
           if (currentStepIndex < route.coordinates.length - 1) {
@@ -218,12 +240,12 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
         };
       });
     },
-    [route, findClosestStepIndex, calculateRemaining, getNextTurnInstruction, mapRef]
+    [route, findClosestStepIndex, calculateRemaining, getNextTurnInstruction, mapRef, isMapReady]
   );
 
   // Start navigation
   const startNavigation = useCallback(async () => {
-    if (!route || !mapRef.current || route.coordinates.length === 0) return;
+    if (!route || !mapRef.current || !isMapReady || route.coordinates.length === 0) return;
 
     const startLocation = route.coordinates[0];
     const destinationLocation = route.coordinates[route.coordinates.length - 1];
@@ -246,7 +268,7 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
       // Animate to start location
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
-          if (isMountedRef.current && mapRef.current) {
+          if (isMountedRef.current && mapRef.current && isMapReady) {
             mapRef.current.animateToLocation?.(startLocation.latitude, startLocation.longitude, 18);
           }
           setTimeout(resolve, 250);
@@ -256,7 +278,7 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
       // Set pitch
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
-          if (isMountedRef.current && mapRef.current) {
+          if (isMountedRef.current && mapRef.current && isMapReady) {
             mapRef.current.setPitch?.(45);
           }
           setTimeout(resolve, 250);
@@ -266,7 +288,7 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
       // Calculate and set bearing
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
-          if (isMountedRef.current && mapRef.current) {
+          if (isMountedRef.current && mapRef.current && isMapReady) {
             const bearing = calculateBearing(startLocation, destinationLocation);
             mapRef.current.setBearing?.(bearing);
           }
@@ -275,13 +297,13 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
       });
 
       // Start location tracking
-      if (isMountedRef.current && mapRef.current) {
+      if (isMountedRef.current && mapRef.current && isMapReady) {
         mapRef.current.startLocationTracking?.();
       }
     } catch (error) {
       console.error('Error starting navigation:', error);
     }
-  }, [route, mapRef, calculateRemaining]);
+  }, [route, mapRef, isMapReady, calculateRemaining]);
 
   // Stop navigation
   const stopNavigation = useCallback(async () => {
@@ -294,7 +316,7 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
     try {
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
-          if (isMountedRef.current && mapRef.current) {
+          if (isMountedRef.current && mapRef.current && isMapReady) {
             mapRef.current.setPitch?.(0);
           }
           setTimeout(resolve, 200);
@@ -303,7 +325,12 @@ export const useNavigationManagement = ({ mapRef, route }: UseNavigationManageme
     } catch (error) {
       console.error('Error stopping navigation:', error);
     }
-  }, [mapRef]);
+  }, [mapRef, isMapReady]);
+
+  // Update ref with stopNavigation
+  useEffect(() => {
+    stopNavigationRef.current = stopNavigation;
+  }, [stopNavigation]);
 
   // Get navigation arrow marker with rotation
   const getNavigationArrowMarker = useCallback(() => {

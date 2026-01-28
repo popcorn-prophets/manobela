@@ -1,6 +1,6 @@
 import { useRef, useMemo, useCallback, useEffect, useState } from 'react';
 import { View, Alert } from 'react-native';
-import { Stack, useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { OSMView, type OSMViewRef } from 'expo-osm-sdk';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useTheme } from '@react-navigation/native';
@@ -16,6 +16,8 @@ import { NavigationPanel } from '@/components/maps/navigation-panel';
 import { LocationSearchBoxes } from '@/components/maps/location-search-boxes';
 import { useLocation } from '@/hooks/maps/useLocation';
 import { useColorScheme } from 'nativewind';
+import { useSettings } from '@/hooks/useSettings';
+import { useCoordinationStore } from '@/stores/coordinationStore';
 
 const FALLBACK_INITIAL_CENTER = { latitude: 40.7128, longitude: -74.006 };
 const INITIAL_ZOOM = 20;
@@ -23,6 +25,17 @@ const INITIAL_ZOOM = 20;
 export default function MapsScreen() {
   const { colorScheme } = useColorScheme();
   const { colors } = useTheme();
+  const router = useRouter();
+  const { settings } = useSettings();
+  const {
+    shouldStartNavigation,
+    shouldStopNavigation,
+    clearNavigationRequest,
+    clearNavigationStopRequest,
+    requestMonitoringStart,
+    requestMonitoringStop,
+    setCoordinating,
+  } = useCoordinationStore();
 
   const mapRef = useRef<OSMViewRef>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -36,6 +49,7 @@ export default function MapsScreen() {
   // Initial map setup
   const {
     initialCenter,
+    isMapReady,
     setIsMapReady,
     startLocation,
     setStartLocation,
@@ -57,6 +71,24 @@ export default function MapsScreen() {
     formatDuration,
   } = useRouteCalculation({ mapRef });
 
+  // Ref to store stopNavigation to avoid circular dependency
+  const stopNavigationRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Handle stop navigation with auto-coordination
+  const handleStopNavigation = useCallback(() => {
+    if (stopNavigationRef.current) {
+      stopNavigationRef.current();
+    }
+
+    // Auto-stop monitoring when navigation stops (if enabled)
+    if (settings.enableAutoCoordination && !useCoordinationStore.getState().isCoordinating) {
+      setCoordinating(true);
+      requestMonitoringStop();
+      // Reset coordination flag after a delay
+      setTimeout(() => setCoordinating(false), 1000);
+    }
+  }, [settings.enableAutoCoordination, requestMonitoringStop, setCoordinating]);
+
   // Navigation management
   const {
     navigationState,
@@ -65,7 +97,17 @@ export default function MapsScreen() {
     handleLocationUpdate,
     formatDistanceMeters,
     formatTimeSeconds,
-  } = useNavigationManagement({ mapRef, route });
+  } = useNavigationManagement({
+    mapRef,
+    route,
+    isMapReady,
+    onNavigationComplete: handleStopNavigation,
+  });
+
+  // Update ref with stopNavigation
+  useEffect(() => {
+    stopNavigationRef.current = stopNavigation;
+  }, [stopNavigation]);
 
   // Location handlers
   const {
@@ -94,10 +136,63 @@ export default function MapsScreen() {
     }
   }, [calculateRoute, startLocation, destinationLocation]);
 
+  // Handle start navigation with auto-coordination
+  const handleStartNavigation = useCallback(() => {
+    startNavigation();
+
+    // Auto-start monitoring when navigation starts (if enabled)
+    // Also check if monitoring is already active to avoid unnecessary coordination
+    if (
+      settings.enableAutoCoordination &&
+      !useCoordinationStore.getState().isCoordinating &&
+      !useCoordinationStore.getState().shouldStartMonitoring
+    ) {
+      setCoordinating(true);
+      requestMonitoringStart();
+      // Navigate to monitor tab
+      router.push('/(tabs)');
+      // Reset coordination flag after a delay
+      setTimeout(() => setCoordinating(false), 1000);
+    }
+  }, [
+    startNavigation,
+    settings.enableAutoCoordination,
+    requestMonitoringStart,
+    setCoordinating,
+    router,
+  ]);
+
+  // Listen for requests to start navigation from monitoring
+  useEffect(() => {
+    if (shouldStartNavigation && route && !navigationState.isNavigating) {
+      clearNavigationRequest();
+      startNavigation();
+    }
+  }, [
+    shouldStartNavigation,
+    route,
+    navigationState.isNavigating,
+    startNavigation,
+    clearNavigationRequest,
+  ]);
+
+  // Listen for requests to stop navigation from monitoring
+  useEffect(() => {
+    if (shouldStopNavigation && navigationState.isNavigating) {
+      clearNavigationStopRequest();
+      stopNavigation();
+    }
+  }, [
+    shouldStopNavigation,
+    navigationState.isNavigating,
+    stopNavigation,
+    clearNavigationStopRequest,
+  ]);
+
   // Handle clear route (stop)
   const handleClearRoute = useCallback(() => {
     if (navigationState.isNavigating) {
-      stopNavigation();
+      handleStopNavigation();
     }
     clearRoute();
     setStartLocation(null);
@@ -107,7 +202,7 @@ export default function MapsScreen() {
     setStartLocation,
     setDestinationLocation,
     navigationState.isNavigating,
-    stopNavigation,
+    handleStopNavigation,
   ]);
 
   // Expand/collapse bottom sheet based on route and navigation state
@@ -187,7 +282,7 @@ export default function MapsScreen() {
         onUseCurrentLocation={handleUseCurrentLocation}
         onCalculateRoute={handleCalculateRoute}
         onClearRoute={handleClearRoute}
-        onStartNavigation={startNavigation}
+        onStartNavigation={handleStartNavigation}
         onZoomIn={mapRef.current?.zoomIn || (() => {})}
         onZoomOut={mapRef.current?.zoomOut || (() => {})}
         hasRoute={!!route}
@@ -213,7 +308,7 @@ export default function MapsScreen() {
               timeRemaining={navigationState.timeRemaining}
               nextTurnInstruction={navigationState.nextTurnInstruction}
               progress={navigationState.progress}
-              onStopNavigation={stopNavigation}
+              onStopNavigation={handleStopNavigation}
               formatDistanceMeters={formatDistanceMeters}
               formatTimeSeconds={formatTimeSeconds}
             />

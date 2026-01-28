@@ -5,6 +5,7 @@ import { db } from '@/db/client';
 import migrations from '@/drizzle/migrations';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { sessionLogger } from '@/services/logging/session-logger';
+import { SpinningLogo } from '@/components/spinning-logo';
 
 type DatabaseContextType = {
   db: typeof db;
@@ -63,8 +64,9 @@ export const DatabaseProvider = ({ children }: { children: React.ReactNode }) =>
 
   if (status === 'loading') {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Applying database migrations…</Text>
+      <View className="flex-1 items-center justify-center gap-4">
+        <SpinningLogo color="white" />
+        <Text className="text-xs text-muted-foreground">Applying database migrations…</Text>
       </View>
     );
   }

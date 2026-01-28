@@ -25,6 +25,7 @@ type UseUploadPlaybackArgs = {
 type UseUploadPlaybackResult = {
   groups: VideoProcessingResponse['groups'];
   activeGroup: VideoProcessingResponse['groups'][number] | null;
+  activeFrame: FrameWithTimestamp | null;
   playbackAspectRatio: number;
   playbackPositionMs: number;
   totalDurationMs: number | null;
@@ -75,43 +76,49 @@ export const useUploadPlayback = ({
     setOverlaySnapshot(null);
   }, [selectedVideoUri]);
 
+  // Single effect that sets up listeners and handles position updates
   useEffect(() => {
     if (!player) return;
+
+    let mounted = true;
+
+    // Initial position and duration
     if (Number.isFinite(player.currentTime)) {
       setPlaybackPositionMs(Math.max(0, Math.round(player.currentTime * 1000)));
     }
     if (Number.isFinite(player.duration) && player.duration > 0) {
       setPlaybackDurationMs(Math.round(player.duration * 1000));
     }
+
+    // Debounce timer for position updates
+    let updateTimer: ReturnType<typeof setTimeout>;
+
     const timeSub = player.addListener('timeUpdate', (payload) => {
-      setPlaybackPositionMs(Math.max(0, Math.round(payload.currentTime * 1000)));
+      if (!mounted) return;
+
+      // Clear existing timer
+      if (updateTimer) clearTimeout(updateTimer);
+
+      // Debounce the update to avoid excessive state changes
+      updateTimer = setTimeout(() => {
+        if (mounted) {
+          setPlaybackPositionMs(Math.max(0, Math.round(payload.currentTime * 1000)));
+        }
+      }, 16);
     });
+
     const sourceSub = player.addListener('sourceLoad', (payload) => {
+      if (!mounted) return;
       if (Number.isFinite(payload.duration) && payload.duration > 0) {
         setPlaybackDurationMs(Math.round(payload.duration * 1000));
       }
     });
-    return () => {
-      timeSub.remove();
-      sourceSub.remove();
-    };
-  }, [player]);
 
-  useEffect(() => {
-    if (!player) return;
-    let rafId = 0;
-    let mounted = true;
-    const tick = () => {
-      if (!mounted) return;
-      if (player.playing && Number.isFinite(player.currentTime)) {
-        setPlaybackPositionMs(Math.max(0, Math.round(player.currentTime * 1000)));
-      }
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
     return () => {
       mounted = false;
-      if (rafId) cancelAnimationFrame(rafId);
+      if (updateTimer) clearTimeout(updateTimer);
+      timeSub.remove();
+      sourceSub.remove();
     };
   }, [player]);
 
@@ -193,8 +200,7 @@ export const useUploadPlayback = ({
     : null;
   const canRenderOverlay =
     Boolean(overlayResolution) && playbackView.width > 0 && playbackView.height > 0;
-  const hasOverlayData =
-    Boolean(overlayLandmarks?.length) || Boolean(overlayDetections?.length);
+  const hasOverlayData = Boolean(overlayLandmarks?.length) || Boolean(overlayDetections?.length);
 
   const totalDurationMs =
     playbackDurationMs ??
@@ -207,6 +213,7 @@ export const useUploadPlayback = ({
   return {
     groups,
     activeGroup,
+    activeFrame,
     playbackAspectRatio,
     playbackPositionMs,
     totalDurationMs,

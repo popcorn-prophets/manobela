@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { GridConfig, PolygonConfig, RadarChart } from 'react-native-gifted-charts';
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useIsFocused } from '@react-navigation/native';
 
 export type KpiRadarProps = {
   eyeClosedPercent: number; // 0–1
@@ -29,6 +29,15 @@ export const KpiRadar = ({
   faceMissingPercent,
 }: KpiRadarProps) => {
   const { colors } = useTheme();
+  const isFocused = useIsFocused();
+  const [chartKey, setChartKey] = useState(0);
+
+  // Force chart remount when screen becomes focused
+  useEffect(() => {
+    if (isFocused) {
+      setChartKey((prev) => prev + 1);
+    }
+  }, [isFocused]);
 
   /**
    * Convert 0–1 KPI values into radar chart values (0–100),
@@ -90,6 +99,7 @@ export const KpiRadar = ({
   return (
     <View>
       <RadarChart
+        key={chartKey}
         data={radarData}
         maxValue={100}
         labels={['Eye', 'Phone', 'Gaze', 'Head', 'Face', 'Yawn']}

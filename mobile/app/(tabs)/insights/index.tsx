@@ -84,13 +84,12 @@ export default function InsightsScreen() {
       headPoseAlertPercent: headPoseAlerts / total,
       faceMissingPercent: faceMissing / total,
       yawnAlertPercent: yawnAlerts / total,
-      // cumulative counter — latest value
       totalYawns: allMetrics[total - 1]?.yawnCount ?? 0,
     };
   }, [allMetrics]);
 
   return (
-    <View className="flex-1 px-3 py-1">
+    <View className="flex-1 px-4 py-4">
       <KpiCard
         eyeClosedPercent={eyeClosedPercent}
         totalYawnCount={totalYawns}
