@@ -9,10 +9,10 @@ const plan = {
   description: 'Full access to Manobela at no cost while we build and improve the system.',
   features: [
     'Real-time driver monitoring',
-    'Distraction and drowsiness detection',
     'Safety alerts and reminders',
-    'Works on any smartphone',
-    'No data collection or tracking',
+    'Insights and reports',
+    'Maps for driving routes',
+    'Upload and analyze driving videos',
   ],
   cta: 'Get Started',
 };

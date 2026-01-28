@@ -4,32 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { CardDecorator } from '@/components/ui/card-decorator';
-import { Eye, ShieldCheck, Smartphone, Globe } from 'lucide-react';
+import { ShieldCheck, Lock, Globe, Users } from 'lucide-react';
 
 const values = [
   {
-    icon: Eye,
-    title: 'Real-Time Monitoring',
-    description:
-      'Manobela detects distraction and drowsiness live while you drive, using only a phone camera.',
-  },
-  {
-    icon: Smartphone,
-    title: 'Phone-Only by Design',
-    description:
-      'No extra hardware needed. The app works on any smartphone, regardless of device specs.',
-  },
-  {
     icon: ShieldCheck,
-    title: 'Server-Side Inference',
+    title: 'Safety First',
     description:
-      'All processing happens on our servers, so the mobile device does not affect performance or accuracy.',
+      'We believe every driver deserves protection on the road, regardless of where they live or what they drive.',
+  },
+  {
+    icon: Lock,
+    title: 'Privacy by Design',
+    description:
+      'Your data belongs to you. We build privacy into every feature, never selling or sharing your personal information.',
   },
   {
     icon: Globe,
-    title: 'Built for Real Roads',
+    title: 'Accessible to All',
     description:
-      'Designed for everyday drivers in low- and middle-income regions where affordable safety solutions matter most.',
+      "Advanced safety technology shouldn't be a luxury. We're committed to making driver monitoring affordable and available to everyone.",
+  },
+  {
+    icon: Users,
+    title: 'User Empowerment',
+    description:
+      "You're in control. From alerts to data sharing, every decision about your safety and privacy is yours to make.",
   },
 ];
 
@@ -39,14 +39,12 @@ export function AboutSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-4xl text-center mb-16">
-          <Badge variant="outline" className="mb-4">
-            About Manobela
-          </Badge>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">Eyes on the road.</h2>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">
+            Introducing Manobela
+          </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Manobela is a driver monitoring system that detects unsafe behaviors like distraction
-            and drowsiness using only a smartphone camera. Because inference runs on our servers, it
-            works on any phone and stays fast and accurate.
+            Manobela is a driver monitoring system that detects unsafe behaviors using only a
+            smartphone camera.
           </p>
         </div>
 
@@ -65,20 +63,6 @@ export function AboutSection() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        {/* Call to Action */}
-        <div className="mt-16 text-center">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="text-muted-foreground">
-              Built to improve safety, not device requirements
-            </span>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="outline" className="cursor-pointer" asChild>
-              <a href="#faq">Learn How It Works</a>
-            </Button>
-          </div>
         </div>
       </div>
     </section>

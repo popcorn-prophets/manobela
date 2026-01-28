@@ -1,16 +1,10 @@
 'use client';
 
-import { Package, Download, Users, Star, Eye, Smartphone, AlertTriangle } from 'lucide-react';
+import { Eye, AlertTriangle, UsersIcon, PhoneIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { DotPattern } from '@/components/dot-pattern';
 
 const stats = [
-  {
-    icon: Users,
-    value: '94%',
-    label: 'Human Error',
-    description: 'Of crashes involve unsafe driver behavior',
-  },
   {
     icon: AlertTriangle,
     value: '1.3M+',
@@ -18,17 +12,24 @@ const stats = [
     description: 'Global road traffic fatalities each year',
   },
   {
-    icon: Smartphone,
-    value: '1',
-    label: 'Device Needed',
-    description: 'Works with just a smartphone camera',
+    icon: UsersIcon,
+    value: '94%',
+    label: 'Human Error',
+    description: 'Of crashes involve unsafe driver behavior',
   },
   {
     icon: Eye,
-    value: 'Real-Time',
-    label: 'Monitoring',
-    description: 'Detects distraction and drowsiness instantly',
+    value: '2%',
+    label: 'Fatigue-Related Crashes',
+    description: 'Of crashes involve driver sleepiness or drowsiness',
   },
+  {
+    icon: PhoneIcon,
+    value: '13%',
+    label: 'Distraction-Related Crashes',
+    description: 'Of crashes involve driver distraction, like phone use',
+  },
+  ,
 ];
 
 export function StatsSection() {

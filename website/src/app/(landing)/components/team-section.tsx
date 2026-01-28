@@ -91,7 +91,7 @@ export function TeamSection() {
         </div>
 
         {/* Team Grid */}
-        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 md:grid-cols-3">
           {team.map((member) => (
             <Card key={member.id} className="shadow-xs py-2">
               <CardContent className="p-4">

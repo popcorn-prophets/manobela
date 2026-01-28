@@ -1,59 +1,53 @@
 'use client';
 
-import { Eye, Zap, Smartphone, ShieldCheck, BarChart3, Users, Cpu } from 'lucide-react';
+import { Eye, Zap, Smartphone, ShieldCheck, BarChart3, Map, Upload, Sliders } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Image3D } from '@/components/image-3d';
 
 const mainFeatures = [
   {
     icon: Eye,
-    title: 'Real-Time Driver Monitoring',
-    description:
-      'Continuously detects distraction, drowsiness, and inattention as they happen—not after an accident.',
-  },
-  {
-    icon: Smartphone,
-    title: 'Phone-Only Setup',
-    description: 'No infrared cameras, no vehicle integration. Just mount your phone and drive.',
+    title: 'Real-Time Monitoring',
+    description: 'Continuously detects distraction, drowsiness, and unsafe behavior as it happens.',
   },
   {
     icon: Zap,
     title: 'Instant Alerts',
     description:
-      'Provides timely warnings that help drivers correct behavior before it turns dangerous.',
+      'Notifies drivers immediately with audio and haptic warnings to prevent accidents.',
+  },
+  {
+    icon: Smartphone,
+    title: 'Phone-Only Setup',
+    description: 'Works with any smartphone—no extra hardware required.',
   },
   {
     icon: ShieldCheck,
-    title: 'Privacy by Default',
-    description:
-      'All processing runs on-device. No cloud uploads, no behavioral tracking, no data harvesting.',
+    title: 'Privacy-First',
+    description: 'Your data stays private. No cloud uploads or behavioral tracking.',
   },
 ];
 
 const secondaryFeatures = [
   {
-    icon: Cpu,
-    title: 'On-Device Computer Vision',
-    description:
-      'Optimized models designed to run efficiently on mobile hardware in real-world conditions.',
-  },
-  {
     icon: BarChart3,
-    title: 'Behavior Insights (Optional)',
-    description:
-      'Understand driving patterns over time with local summaries—no centralized data collection.',
+    title: 'Insights',
+    description: 'Session logging and local statistics to track driving behavior over time.',
   },
   {
-    icon: Users,
-    title: 'Built for Everyday Drivers',
-    description:
-      'Equally useful for private motorists, ride-share drivers, and future fleet deployments.',
+    icon: Map,
+    title: 'Maps & Navigation',
+    description: 'Routing, turn-by-turn instructions, and search for drivers.',
   },
   {
-    icon: Smartphone,
-    title: 'Works Anywhere',
-    description:
-      'Designed for diverse lighting, road, and vehicle conditions common in emerging markets.',
+    icon: Upload,
+    title: 'Uploads',
+    description: 'Analyze external videos and integrate them into session data for insights.',
+  },
+  {
+    icon: Sliders,
+    title: 'Configurable',
+    description: 'Flexible settings to tailor alerts, notifications, and monitoring preferences.',
   },
 ];
 
@@ -63,12 +57,13 @@ export function FeaturesSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center mb-16">
-          <Badge variant="outline" className="mb-4">
-            Core Features
-          </Badge>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            Safety that reacts before accidents happen
+            Safety that reacts in real time
           </h2>
+          <p className="text-muted-foreground text-base">
+            Manobela monitors driver behavior instantly, alerts unsafe actions immediately, works on
+            any phone, and ensures your data stays private.
+          </p>
         </div>
 
         {/* First Feature Section */}
@@ -79,21 +74,11 @@ export function FeaturesSection() {
             darkSrc="/feature-1-dark.png"
             alt="Driver monitoring visualization"
             direction="left"
+            className="text-xs text-muted"
           />
 
           {/* Right Content */}
           <div className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-                Detect risk the moment it appears
-              </h3>
-              <p className="text-muted-foreground text-base text-pretty">
-                Most crashes are caused by momentary lapses—looking away, nodding off, or losing
-                focus. Manobela identifies these behaviors instantly and prompts corrective action
-                before it’s too late.
-              </p>
-            </div>
-
             <ul className="grid gap-4 sm:grid-cols-2">
               {mainFeatures.map((feature, index) => (
                 <li
@@ -116,15 +101,14 @@ export function FeaturesSection() {
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8 xl:gap-16">
           {/* Left Content */}
           <div className="space-y-6 order-2 lg:order-1">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-                Designed for real roads, not lab conditions
-              </h3>
-              <p className="text-muted-foreground text-base text-pretty">
-                Manobela is built with the realities of everyday driving in mind—varied lighting,
-                different vehicles, and environments where expensive hardware is not an option.
-              </p>
-            </div>
+            <h3 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
+              Tools for deeper insights and flexibility
+            </h3>
+            <p className="text-muted-foreground text-base text-pretty">
+              Beyond real-time monitoring, Manobela helps drivers analyze past sessions, navigate
+              routes efficiently, upload external videos for review, and configure alerts and
+              monitoring preferences.
+            </p>
 
             <ul className="grid gap-4 sm:grid-cols-2">
               {secondaryFeatures.map((feature, index) => (
@@ -147,9 +131,9 @@ export function FeaturesSection() {
           <Image3D
             lightSrc="/feature-2-light.png"
             darkSrc="/feature-2-dark.png"
-            alt="On-device computer vision"
+            alt="Insights and configurable tools"
             direction="right"
-            className="order-1 lg:order-2"
+            className="order-1 lg:order-2 text-xs text-muted"
           />
         </div>
       </div>

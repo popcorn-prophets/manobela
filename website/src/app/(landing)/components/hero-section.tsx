@@ -25,18 +25,16 @@ export function HeroSection() {
             <Badge variant="outline" className="px-4 py-2 border-foreground">
               <Star className="w-3 h-3 mr-2 fill-current" />
               v1.0.0 is live!
-              <ArrowRight className="w-3 h-3 ml-2" />
             </Badge>
           </div>
 
           {/* Main Headline */}
           <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-            Monitor Drivers.
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              {' '}
-              Prevent Accidents{' '}
+            <span className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Prevent Accidents
             </span>
-            with Just a Mobile Phone
+            <br />
+            with Just a Phone
           </h1>
 
           {/* Subheading */}
@@ -72,20 +70,20 @@ export function HeroSection() {
               {/* Light mode dashboard image */}
               <Image
                 src="/preview-light.png"
-                alt="Preview - Light Mode"
+                alt="Preview"
                 width={1200}
                 height={800}
-                className="w-full rounded-xl object-cover block dark:hidden"
+                className="text-xs text-muted w-full rounded-xl object-cover block dark:hidden"
                 priority
               />
 
               {/* Dark mode dashboard image */}
               <Image
                 src="/preview-dark.png"
-                alt="Preview - Dark Mode"
+                alt="Preview"
                 width={1200}
                 height={800}
-                className="w-full rounded-xl object-cover hidden dark:block"
+                className="text-xs text-muted w-full rounded-xl object-cover hidden dark:block"
                 priority
               />
 

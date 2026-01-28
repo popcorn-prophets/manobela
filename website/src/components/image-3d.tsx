@@ -52,7 +52,7 @@ export function Image3D({ lightSrc, darkSrc, alt, className, direction = 'left' 
             {/* Theme-aware images */}
             <Image
               src={lightSrc}
-              alt={`${alt} - Light Mode`}
+              alt={`${alt}`}
               width={800}
               height={600}
               className={cn(
@@ -64,7 +64,7 @@ export function Image3D({ lightSrc, darkSrc, alt, className, direction = 'left' 
 
             <Image
               src={darkSrc}
-              alt={`${alt} - Dark Mode`}
+              alt={`${alt}`}
               width={800}
               height={600}
               className={cn(
