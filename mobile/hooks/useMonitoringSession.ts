@@ -85,10 +85,18 @@ export const useMonitoringSession = ({
 
   // Sync session state with WebRTC connection
   useEffect(() => {
-    if (connectionStatus === 'failed') {
+    const shouldResetSession =
+      (connectionStatus === 'failed' ||
+        connectionStatus === 'closed' ||
+        connectionStatus === 'disconnected') &&
+      (sessionState === 'active' || sessionState === 'starting');
+
+    if (shouldResetSession) {
       (async () => {
         await sessionLogger.endSession();
         setSessionState('idle');
+        setInferenceData(null);
+        latestInferenceRef.current = null;
         useSessionStore.getState().setActiveSessionId(null);
       })();
       return;
