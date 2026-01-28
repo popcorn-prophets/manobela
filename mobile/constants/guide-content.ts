@@ -1,84 +1,148 @@
-export const GUIDE_SECTIONS = [
+export type ContentItemType = 'bullet' | 'numbered' | 'paragraph' | 'spacer';
+
+export interface ContentItem {
+  type: ContentItemType;
+  text: string;
+}
+
+export interface GuideSection {
+  id: string;
+  title: string;
+  content: ContentItem[];
+  important?: boolean;
+}
+
+export const GUIDE_SECTIONS: GuideSection[] = [
   {
-    id: 'quick-start',
-    title: 'Quick Start',
+    id: 'how-to-use',
+    title: 'How to Use',
     content: [
-      '1. Grant camera permissions when prompted',
-      '2. Mount your device on the dashboard at eye level, ensuring your full face is visible',
-      '3. Check connection status shows "Ready" or "Connected"',
-      '4. Test while parked to ensure everything works',
+      { type: 'numbered', text: 'Grant camera permissions when prompted' },
+      { type: 'numbered', text: 'Tap the Record button to begin monitoring' },
+      { type: 'numbered', text: 'Drive normally. Metrics update automatically in real-time' },
+      { type: 'numbered', text: 'Listen for audio alerts (if enabled in settings)' },
+      { type: 'numbered', text: 'Red indicators mean alerts detected. Check only when safe' },
+      {
+        type: 'numbered',
+        text: 'Tap the Record button again when finished. Data is saved automatically',
+      },
+      { type: 'numbered', text: 'Review your driving session in the Insights tab' },
     ],
   },
   {
-    id: 'camera-tips',
-    title: 'Camera Setup Tips',
+    id: 'metrics-explained',
+    title: 'Understanding Metrics',
     content: [
-      '• Position camera at eye level or slightly above, centered on your face',
-      '• Ensure good lighting—avoid backlighting and remove sunglasses',
-      '• Keep your entire face visible in frame',
-      '• Clean the camera lens regularly',
+      {
+        type: 'paragraph',
+        text: 'Eyes: Tracks eye closure frequency and duration (EAR, PERCLOS). Detects drowsiness when eyes close frequently or for extended periods.',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'Yawn: Detects yawning by analyzing mouth opening ratio (MAR). Frequent yawning indicates fatigue..',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'Head: Monitors head orientation (yaw, pitch, roll) to detect when you look away from the road. Auto-calibrates at the start of each session. You can also manually recalibrate if you change your seating or camera position.',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'Gaze: Tracks eye direction to detect when you are not looking forward at the road.',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'Phone: Detects phone usage while driving using object detection.',
+      },
     ],
   },
   {
-    id: 'metrics',
-    title: 'What Each Metric Means',
+    id: 'alerts-system',
+    title: 'Alert System',
     content: [
-      ' Eyes: Tracks eye closure frequency and duration to detect fatigue (EAR, PERCLOS)',
-      ' Yawn: Detects yawning as an indicator of drowsiness',
-      ' Head: Monitors head orientation (yaw, pitch, roll) to detect looking away from the road',
-      " Gaze: Tracks eye direction to detect when you're not looking forward",
-      ' Phone: Detects phone usage while driving',
+      {
+        type: 'bullet',
+        text: 'There is a 5-second grace period after starting before alerts begin',
+      },
+      { type: 'bullet', text: 'Alerts use priority levels: Critical > High > Medium > Low' },
+      { type: 'bullet', text: 'Each alert has a cooldown period to avoid repetition' },
+      { type: 'bullet', text: 'Audio alerts can be toggled in Settings (speech + haptics)' },
+      { type: 'bullet', text: 'Face not visible = Critical alert (highest priority)' },
+      { type: 'bullet', text: 'Phone usage = Critical alert (immediate warning)' },
+      { type: 'bullet', text: 'Frequent eye closure (PERCLOS) = High priority' },
+      { type: 'bullet', text: 'Head pose and gaze off-road = Medium priority' },
+      { type: 'bullet', text: 'Yawning = Low priority (triggered every 3 yawns)' },
     ],
   },
   {
-    id: 'usage',
-    title: 'Using During Drives',
+    id: 'camera-setup',
+    title: 'Camera Setup',
     content: [
-      '1. Set up and verify connection before driving',
-      '2. Tap green "Start" button to begin monitoring',
-      '3. Drive normally—metrics update automatically',
-      '4. Red indicators mean alerts detected; check only when safe',
-      '5. Tap "Stop" when finished; review results in Insights tab',
-    ],
-  },
-  {
-    id: 'understanding-results',
-    title: 'Understanding Results',
-    content: [
-      '• Green/Gray = Normal | Red = Alert condition',
-      '• Multiple simultaneous alerts suggest fatigue or distraction',
-      '• High eye closure or yawning = drowsiness—take a break',
-      '• Track patterns over time to improve driving habits',
+      { type: 'bullet', text: 'Position at eye level or slightly above, centered on your face' },
+      { type: 'bullet', text: 'Ensure good lighting. Avoid direct sunlight and backlighting' },
+      { type: 'bullet', text: 'Keep your entire face visible in the frame' },
+      { type: 'bullet', text: 'Ensure nothing obstructs your face' },
+      { type: 'bullet', text: 'Clean the camera lens regularly for optimal detection' },
+      { type: 'bullet', text: 'Use a stable mount to prevent camera shake' },
     ],
   },
   {
     id: 'troubleshooting',
     title: 'Troubleshooting',
     content: [
-      'Connection issues: Check internet, restart app, avoid restricted networks',
-      'Camera issues: Verify permissions, ensure no other app is using it',
-      'Metrics not updating: Ensure face is visible and well-lit, remove sunglasses',
-      'Keep device plugged in during long drives',
+      {
+        type: 'paragraph',
+        text: 'Connection issues: Check internet connection, restart app, verify server URL in Settings, avoid networks with firewalls',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'Camera issues: Verify permissions in device settings, close other apps using the camera, restart the app',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'Metrics not updating: Ensure face is fully visible and well-lit, remove sunglasses/masks, check for "Calibrating head pose" message',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'Battery: Keep device plugged in during long drives, check low battery warnings',
+      },
+      { type: 'spacer', text: '' },
+      {
+        type: 'paragraph',
+        text: 'No audio alerts: Check Settings to enable speech/haptic alerts, verify device volume',
+      },
     ],
   },
   {
     id: 'best-practices',
-    title: 'Best Practices & Safety',
+    title: 'Safety & Best Practices',
+    important: true,
     content: [
-      '• Never interact with the app while driving—set up before starting',
-      '• Pull over safely if you need to check metrics',
-      '• Take breaks if multiple fatigue alerts appear',
-      '• Get adequate sleep, avoid distractions, stay hydrated',
+      { type: 'bullet', text: 'NEVER interact with the app while driving. Set up before starting' },
+      { type: 'bullet', text: 'Pull over safely if you need to check detailed metrics' },
+      { type: 'bullet', text: 'Take breaks if you receive multiple fatigue alerts' },
+      { type: 'bullet', text: 'Get adequate sleep before long drives' },
+      { type: 'bullet', text: 'Stay hydrated and avoid heavy meals' },
+      { type: 'bullet', text: 'The app assists but does not replace your responsibility' },
+      { type: 'bullet', text: 'Trust your judgment. If you feel tired, stop driving' },
     ],
   },
   {
     id: 'privacy',
     title: 'Privacy & Data',
     content: [
-      '• Video is analyzed in real-time but never recorded or stored',
-      '• Only metric statistics are stored locally on your device',
-      '• Secure encrypted connection; no data shared with third parties',
-      '• You control monitoring and can delete data anytime',
+      { type: 'bullet', text: 'No data shared with third parties' },
+      { type: 'bullet', text: 'Uses secure WebRTC connection with encrypted data channels' },
+      { type: 'bullet', text: 'Video is analyzed in real-time but NEVER recorded or stored' },
+      { type: 'bullet', text: 'Only metric statistics are stored locally on your device' },
+      { type: 'bullet', text: 'You have full control. Delete data anytime' },
+      { type: 'bullet', text: 'Session logging can be disabled in Settings' },
     ],
   },
-] as const;
+];
