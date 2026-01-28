@@ -1,7 +1,7 @@
 import { View, ScrollView, Pressable, Image, StyleSheet } from 'react-native';
 
-import { useMemo, useState } from 'react';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { useEffect, useMemo, useState } from 'react';
+import { VideoView, createVideoPlayer } from 'expo-video';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { FacialLandmarkOverlay } from '@/components/facial-landmark-overlay';
@@ -39,9 +39,16 @@ export default function UploadsScreen() {
 
   const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
   const [showOverlays, setShowOverlays] = useState(true);
-  const player = useVideoPlayer(selectedVideo?.uri ?? null, (player) => {
+  const player = useMemo(() => createVideoPlayer(null), []);
+  useEffect(() => {
     player.timeUpdateEventInterval = 0.05;
-  });
+    return () => {
+      player.release();
+    };
+  }, [player]);
+  useEffect(() => {
+    void player.replaceAsync(selectedVideo?.uri ?? null);
+  }, [player, selectedVideo?.uri]);
   const {
     groups,
     activeGroup,
