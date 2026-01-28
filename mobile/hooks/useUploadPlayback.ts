@@ -51,6 +51,8 @@ export const useUploadPlayback = ({
   const [playbackDurationMs, setPlaybackDurationMs] = useState<number | null>(null);
   const [playbackView, setPlaybackView] = useState({ width: 0, height: 0 });
   const [overlaySnapshot, setOverlaySnapshot] = useState<OverlaySnapshot | null>(null);
+  const lastPositionRef = useRef<number | null>(null);
+  const lastDurationRef = useRef<number | null>(null);
 
   const groups = useMemo(() => result?.groups ?? [], [result]);
   const sortedGroups = useMemo(
@@ -73,49 +75,49 @@ export const useUploadPlayback = ({
     setPlaybackPositionMs(0);
     setPlaybackDurationMs(null);
     setOverlaySnapshot(null);
+    lastPositionRef.current = null;
+    lastDurationRef.current = null;
   }, [selectedVideoUri]);
 
-  // Single effect that sets up listeners and handles position updates
   useEffect(() => {
     if (!player) return;
 
     let mounted = true;
 
-    // Initial position and duration
+    const updatePosition = (ms: number) => {
+      if (!mounted) return;
+      if (lastPositionRef.current === ms) return;
+      lastPositionRef.current = ms;
+      setPlaybackPositionMs(ms);
+    };
+
+    const updateDuration = (ms: number) => {
+      if (!mounted) return;
+      if (lastDurationRef.current === ms) return;
+      lastDurationRef.current = ms;
+      setPlaybackDurationMs(ms);
+    };
+
     if (Number.isFinite(player.currentTime)) {
-      setPlaybackPositionMs(Math.max(0, Math.round(player.currentTime * 1000)));
+      updatePosition(Math.max(0, Math.round(player.currentTime * 1000)));
     }
     if (Number.isFinite(player.duration) && player.duration > 0) {
-      setPlaybackDurationMs(Math.round(player.duration * 1000));
+      updateDuration(Math.round(player.duration * 1000));
     }
 
-    // Debounce timer for position updates
-    let updateTimer: ReturnType<typeof setTimeout>;
-
     const timeSub = player.addListener('timeUpdate', (payload) => {
-      if (!mounted) return;
-
-      // Clear existing timer
-      if (updateTimer) clearTimeout(updateTimer);
-
-      // Debounce the update to avoid excessive state changes
-      updateTimer = setTimeout(() => {
-        if (mounted) {
-          setPlaybackPositionMs(Math.max(0, Math.round(payload.currentTime * 1000)));
-        }
-      }, 16);
+      if (!Number.isFinite(payload.currentTime)) return;
+      updatePosition(Math.max(0, Math.round(payload.currentTime * 1000)));
     });
 
     const sourceSub = player.addListener('sourceLoad', (payload) => {
-      if (!mounted) return;
       if (Number.isFinite(payload.duration) && payload.duration > 0) {
-        setPlaybackDurationMs(Math.round(payload.duration * 1000));
+        updateDuration(Math.round(payload.duration * 1000));
       }
     });
 
     return () => {
       mounted = false;
-      if (updateTimer) clearTimeout(updateTimer);
       timeSub.remove();
       sourceSub.remove();
     };
