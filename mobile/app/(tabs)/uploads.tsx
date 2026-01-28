@@ -77,7 +77,7 @@ export default function UploadsScreen() {
         Uploads
       </Text>
       <Text className="text-sm text-muted-foreground">
-        Upload a recorded drive to run the same monitoring metrics as a live session.
+        Upload a recorded drive to run the same monitoring metrics as a xve session.
       </Text>
 
       <View className="mt-6 gap-3">
@@ -106,7 +106,7 @@ export default function UploadsScreen() {
           </Text>
         )}
 
-        <Button onPress={handleUpload} disabled={!selectedVideo || isUploading}>
+        <Button onPress={handleUpload} disabled={!selectedVideo || isUploading || isProcessing}>
           <Text>{isUploading ? 'Uploading...' : 'Upload & Analyze'}</Text>
         </Button>
 
