@@ -203,6 +203,7 @@ export default function SessionDetailsScreen() {
     earValues,
     marValues,
     isActive,
+    isUpload,
     handleDelete,
   ]);
 

@@ -24,7 +24,7 @@ export function SettingRow({
   destructive = false,
 }: SettingRowProps) {
   const { colorScheme } = useColorScheme();
-  const isDark = colorScheme == 'dark';
+  const isDark = colorScheme === 'dark';
 
   const Icon = icon;
 
