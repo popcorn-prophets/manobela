@@ -63,6 +63,12 @@ def process_uploaded_video(
     source_frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0.0
     source_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
     source_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
+    output_width = source_width
+    output_height = source_height
+    if source_width > MAX_WIDTH and source_width > 0:
+        scale = MAX_WIDTH / source_width
+        output_width = int(source_width * scale)
+        output_height = int(source_height * scale)
 
     duration_sec = (
         source_frame_count / source_fps
@@ -177,7 +183,7 @@ def process_uploaded_video(
         duration_sec=duration_sec,
         total_frames_processed=frame_number,
         fps=target_fps,
-        resolution=Resolution(width=source_width, height=source_height),
+        resolution=Resolution(width=output_width, height=output_height),
     )
 
     return VideoProcessingResult(metadata=metadata, frames=frames)
