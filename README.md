@@ -75,6 +75,17 @@ _Learn more by visiting the [website](https://manobela.vercel.app/) or the [docu
 - **Maps integration:** Navigation, routing, and location-based analytics.
 - **Customizable settings:** Adjust thresholds, alerts, and monitoring preferences.
 
+## Screenshots
+
+<div align="center" style="display:flex; flex-wrap:wrap; gap:16px; justify-content:center;">
+  <img src="docs/images/screenshots/monitoring.jpg" alt="Monitoring" width="260" style="border-radius:20px;" />
+  <img src="docs/images/screenshots/insights.jpg" alt="Insights" width="260" style="border-radius:20px;" />
+  <img src="docs/images/screenshots/insights_session.jpg" alt="Insights session" width="260" style="border-radius:20px;" />
+  <img src="docs/images/screenshots/uploads.jpg" alt="Uploads" width="260" style="border-radius:20px;" />
+  <img src="docs/images/screenshots/maps.jpg" alt="Maps" width="260" style="border-radius:20px;" />
+  <img src="docs/images/screenshots/settings.jpg" alt="Settings" width="260" style="border-radius:20px;" />
+</div>
+
 ## Project Structure
 
 ```txt
