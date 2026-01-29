@@ -212,14 +212,16 @@ export const useNavigationManagement = ({
       });
     }
 
-    return instructions.length > 0 ? instructions : [
-      {
-        instruction: 'Continue to destination',
-        distance: 0,
-        duration: 0,
-        coordinate: route.coordinates[route.coordinates.length - 1],
-      },
-    ];
+    return instructions.length > 0
+      ? instructions
+      : [
+          {
+            instruction: 'Continue to destination',
+            distance: 0,
+            duration: 0,
+            coordinate: route.coordinates[route.coordinates.length - 1],
+          },
+        ];
   }, [route, getNextTurnInstruction]);
 
   // Handle location update during navigation
