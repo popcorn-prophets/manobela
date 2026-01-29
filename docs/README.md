@@ -21,6 +21,7 @@ Other docs:
 - [Metrics](metrics.md)
 - [Models](models.md)
 - [Mobile settings](mobile/settings.md)
+- [Self-hosting](self-hosting.md)
 - [Troubleshooting](troubleshooting.md)
 - [Video processing](backend/video-processing.md)
 - [WebRTC signaling](backend/webrtc.md)
