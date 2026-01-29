@@ -25,7 +25,7 @@ THUMBNAIL_JPEG_QUALITY = 70
 @dataclass
 class VideoProcessingResult:
     metadata: VideoMetadata
-    frames: list[VideoFrameResult] | None = None
+    frames: list[VideoFrameResult]
 
 
 def format_timestamp(seconds: float) -> str:
@@ -53,7 +53,6 @@ def process_uploaded_video(
     max_duration_sec: float,
     face_landmarker: FaceLandmarker,
     object_detector: ObjectDetector,
-    include_frames: bool = False,
 ) -> VideoProcessingResult:
     cap = cv2.VideoCapture(file_path)
     if not cap.isOpened():
@@ -83,7 +82,7 @@ def process_uploaded_video(
     metric_manager.reset()
     smoother = SequenceSmoother(alpha=0.8, max_missing=5)
 
-    frames: list[VideoFrameResult] | None = [] if include_frames else None
+    frames: list[VideoFrameResult] = []
 
     frame_number = 0
     next_target_time = 0.0
@@ -151,18 +150,17 @@ def process_uploaded_video(
                 else None
             )
 
-            if include_frames and frames is not None:
-                frames.append(
-                    VideoFrameResult(
-                        timestamp=format_timestamp(timestamp_sec),
-                        frame_number=frame_number,
-                        resolution=Resolution(width=w, height=h),
-                        face_landmarks=smoothed_landmarks if has_face else None,
-                        object_detections=object_detections or None,
-                        metrics=metrics,
-                        thumbnail_base64=thumbnail_base64,
-                    )
+            frames.append(
+                VideoFrameResult(
+                    timestamp=format_timestamp(timestamp_sec),
+                    frame_number=frame_number,
+                    resolution=Resolution(width=w, height=h),
+                    face_landmarks=smoothed_landmarks if has_face else None,
+                    object_detections=object_detections or None,
+                    metrics=metrics,
+                    thumbnail_base64=thumbnail_base64,
                 )
+            )
 
     except OverflowError:
         raise

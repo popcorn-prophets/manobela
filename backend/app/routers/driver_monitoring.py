@@ -182,7 +182,6 @@ async def process_video_upload(
     object_detector: ObjectDetectorDep,
     video: UploadFile = File(...),
     target_fps: int = Query(15, ge=1, le=30),
-    include_frames: bool = Query(False),
 ):
     """
     Process an uploaded video file and return frame-by-frame metrics.
@@ -229,7 +228,6 @@ async def process_video_upload(
                         tmp_path,
                         target_fps=target_fps,
                         max_duration_sec=MAX_DURATION_SEC,
-                        include_frames=include_frames,
                         face_landmarker=face_landmarker,
                         object_detector=object_detector,
                     ),

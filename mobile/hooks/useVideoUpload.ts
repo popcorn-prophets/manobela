@@ -127,7 +127,7 @@ export const useVideoUpload = (apiBaseUrl: string): UseVideoUploadResult => {
     const xhr = new XMLHttpRequest();
     xhrRef.current = xhr;
     const uploadUrl =
-      `${apiBaseUrl}/driver-monitoring/process-video` + `?include_frames=true&target_fps=10`;
+      `${apiBaseUrl}/driver-monitoring/process-video` + `?target_fps=10`;
     xhr.open('POST', uploadUrl);
     xhr.responseType = 'json';
     xhr.setRequestHeader('Accept', 'application/json');
