@@ -128,12 +128,6 @@ def process_uploaded_video(
                 face_landmarks=face_landmarks, object_detections=object_detections
             )
             metrics = metric_manager.update(frame_context)
-            has_alert = any(
-                key.endswith("_alert")
-                and isinstance(value, bool)
-                and value
-                for key, value in metrics.items()
-            )
 
             frames.append(
                 VideoFrameResult(
