@@ -88,7 +88,11 @@ async def driver_monitoring(
 
     # Generate a unique identifier for this client session
     client_id = str(uuid.uuid4())
-    await connection_manager.connect(websocket, client_id)
+
+    accepted = await connection_manager.connect(websocket, client_id)
+    if not accepted:
+        logger.info("Connection from %s rejected due to capacity limits", client_id)
+        return
 
     try:
         # Initial handshake message so the client knows its assigned ID

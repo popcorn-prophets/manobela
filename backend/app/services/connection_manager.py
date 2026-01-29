@@ -7,6 +7,8 @@ from typing import Optional
 from aiortc import RTCDataChannel, RTCPeerConnection
 from fastapi import WebSocket
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 SESSION_TTL_SEC = 5 * 60
@@ -29,8 +31,18 @@ class ConnectionManager:
         self.head_pose_recalibrate_requests: set[str] = set()
         logger.info("Connection Manager initialized")
 
-    async def connect(self, websocket: WebSocket, client_id: str) -> None:
-        """Accept a WebSocket connection and register it."""
+    async def connect(self, websocket: WebSocket, client_id: str) -> bool:
+        """Accept a WebSocket connection and register it if capacity allows."""
+        if len(self.active_connections) >= settings.max_webrtc_connections:
+            await websocket.accept()
+            await websocket.close(code=1013, reason="Server at capacity")
+            logger.warning(
+                "Rejected %s: max WebRTC connections reached (%d)",
+                client_id,
+                settings.max_webrtc_connections,
+            )
+            return False
+
         await websocket.accept()
         self.active_connections[client_id] = websocket
         self.processing_paused[client_id] = False
@@ -43,6 +55,7 @@ class ConnectionManager:
         logger.info(
             "Client %s connected. Total: %d", client_id, len(self.active_connections)
         )
+        return True
 
     async def _expire_session(self, client_id: str, started_at: float) -> None:
         try:
