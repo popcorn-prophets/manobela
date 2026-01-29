@@ -32,7 +32,9 @@ class ConnectionManager:
         logger.info("Connection Manager initialized")
 
     async def connect(self, websocket: WebSocket, client_id: str) -> bool:
-        """Accept a WebSocket connection and register it if capacity allows."""
+        """
+        Accept a WebSocket connection and register it if capacity allows.
+        """
         if len(self.active_connections) >= settings.max_webrtc_connections:
             await websocket.accept()
             await websocket.close(code=1013, reason="Server at capacity")
@@ -58,6 +60,9 @@ class ConnectionManager:
         return True
 
     async def _expire_session(self, client_id: str, started_at: float) -> None:
+        """
+        Background task that expires a client session after SESSION_TTL_SEC.
+        """
         try:
             await asyncio.sleep(SESSION_TTL_SEC)
             if self.session_started_at.get(client_id) != started_at:
@@ -77,12 +82,17 @@ class ConnectionManager:
             logger.warning("Failed to expire session for %s: %s", client_id, exc)
 
     def _cancel_expiry_task(self, client_id: str) -> None:
+        """
+        Cancel the session expiry task for a client.
+        """
         task = self.session_expiry_tasks.pop(client_id, None)
         if task and not task.done():
             task.cancel()
 
     def disconnect(self, client_id: str) -> Optional[RTCPeerConnection]:
-        """Remove all resources associated with a client and cancel background tasks."""
+        """
+        Remove all resources associated with a client and cancel background tasks.
+        """
         self.active_connections.pop(client_id, None)
         pc = self.peer_connections.pop(client_id, None)
         self.data_channels.pop(client_id, None)
@@ -109,7 +119,9 @@ class ConnectionManager:
         return pc
 
     async def send_message(self, client_id: str, message: dict) -> None:
-        """Send a JSON-serializable message to a client over WebSocket."""
+        """
+        Send a JSON-serializable message to a client over WebSocket.
+        """
         ws = self.active_connections.get(client_id)
         if ws:
             try:
@@ -118,7 +130,9 @@ class ConnectionManager:
                 logger.error("Failed to send message to %s: %s", client_id, e)
 
     async def send_data(self, client_id: str, message: dict) -> None:
-        """Send a JSON message to the client via its WebRTC data channel."""
+        """
+        Send a JSON message to the client via its WebRTC data channel.
+        """
         channel = self.data_channels.get(client_id)
         if channel and channel.readyState == "open":
             try:
@@ -129,7 +143,9 @@ class ConnectionManager:
             logger.warning("Data channel not open for %s", client_id)
 
     async def broadcast(self, message: dict) -> None:
-        """Send a message to all connected clients."""
+        """
+        Send a message to all connected clients.
+        """
         for client_id, ws in self.active_connections.items():
             try:
                 await ws.send_json(message)
@@ -180,11 +196,15 @@ class ConnectionManager:
         logger.info("Connection Manager shutdown complete")
 
     def request_head_pose_recalibration(self, client_id: str) -> None:
-        """Queue a head pose recalibration request for the next processed frame."""
+        """
+        Queue a head pose recalibration request for the next processed frame.
+        """
         self.head_pose_recalibrate_requests.add(client_id)
 
     def consume_head_pose_recalibration(self, client_id: str) -> bool:
-        """Return True if a recalibration request was queued and consume it."""
+        """
+        Return True if a recalibration request was queued and consume it.
+        """
         if client_id in self.head_pose_recalibrate_requests:
             self.head_pose_recalibrate_requests.remove(client_id)
             return True

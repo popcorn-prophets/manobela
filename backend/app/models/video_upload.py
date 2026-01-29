@@ -10,6 +10,9 @@ class Resolution(BaseModel):
 
 
 class VideoFrameResult(BaseModel):
+    """
+    Data returned for each processed video frame.
+    """
     timestamp: str
     face_landmarks: list[float] | None = None
     object_detections: list[ObjectDetection] | None = None
@@ -17,6 +20,9 @@ class VideoFrameResult(BaseModel):
 
 
 class VideoMetadata(BaseModel):
+    """
+    Metadata about the processed video.
+    """
     duration_sec: float
     total_frames_processed: int
     fps: int
@@ -24,5 +30,8 @@ class VideoMetadata(BaseModel):
 
 
 class VideoProcessingResponse(BaseModel):
+    """
+    Response model for video processing results.
+    """
     video_metadata: VideoMetadata
     frames: list[VideoFrameResult] | None = None

@@ -22,11 +22,17 @@ MAX_WIDTH = 480
 
 @dataclass
 class VideoProcessingResult:
+    """
+    Result of processing an uploaded video.
+    """
     metadata: VideoMetadata
     frames: list[VideoFrameResult]
 
 
 def format_timestamp(seconds: float) -> str:
+    """
+    Format a timestamp in seconds as a string.
+    """
     total_ms = int(seconds * 1000)
     ms = total_ms % 1000
     total_seconds = total_ms // 1000
@@ -44,6 +50,10 @@ def process_uploaded_video(
     face_landmarker: FaceLandmarker,
     object_detector: ObjectDetector,
 ) -> VideoProcessingResult:
+    """
+    Process an uploaded video file and extract frame-level data.
+    """
+
     cap = cv2.VideoCapture(file_path)
     if not cap.isOpened():
         raise ValueError("Invalid video file")

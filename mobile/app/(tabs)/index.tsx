@@ -142,7 +142,7 @@ export default function MonitorScreen() {
   const canRecalibrate = sessionState === 'active' && dataChannelState === 'open';
 
   const lastErrorRef = useRef<string | null>(null);
-  // --- Friendly Message Error block ---
+
   useEffect(() => {
     if (!error) {
       lastErrorRef.current = null;
@@ -152,8 +152,6 @@ export default function MonitorScreen() {
     lastErrorRef.current = error;
     Alert.alert('Connection Error', error);
   }, [error]);
-
-  // ------------
 
   return (
     <ScrollView className="flex-1 px-2 py-1">

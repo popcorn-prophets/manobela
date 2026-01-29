@@ -46,7 +46,7 @@ const MAX_BUFFER_SIZE = 20; // flush when buffer is full
  * Flush buffer to database in a transaction
  */
 const flushBuffer = async () => {
-  if (readOnly) return; // <-- BLOCK WRITES
+  if (readOnly) return; // block writes
   if (metricBuffer.length === 0) return;
 
   const batch = metricBuffer.splice(0, metricBuffer.length);

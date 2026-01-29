@@ -78,7 +78,7 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
   // Last fatal error encountered anywhere in the stack
   const [error, setError] = useState<string | null>(null);
 
-  // --- Specified error block ---
+  // Specified error block
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const setErrorState = useCallback((message: string, rawMessage?: string | null) => {
     const normalizedMessage = message || null;
@@ -97,7 +97,6 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
     },
     [setErrorState]
   );
-  // ------ Specified Error Block end ------
 
   // Allow external subscribers to observe raw signaling traffic
   const onSignalingMessage = useCallback((handler: (msg: SignalingMessage) => void) => {

@@ -57,7 +57,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Hidden compartments from tab navigation: */}
+      {/* Hidden compartments from tab navigation */}
       <Tabs.Screen name="settings/api-urls" options={{ href: null }} />
       <Tabs.Screen name="insights/session/[sessionId]" options={{ href: null }} />
     </Tabs>

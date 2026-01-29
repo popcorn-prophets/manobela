@@ -63,7 +63,7 @@ export function LocationSearchBoxes({
               value={destinationLocation?.displayName}
               placeholder="Choose destination"
               onLocationSelected={onDestinationLocationSelected}
-              onClear={() => onDestinationLocationSelected(null)} // <-- fixed
+              onClear={() => onDestinationLocationSelected(null)}
             />
           </View>
         </View>

@@ -19,8 +19,6 @@ async def lifespan(app: FastAPI):
     Manage application lifecycle: startup and shutdown.
     """
     # Startup
-    # Startup
-
     logger.info("Starting application...")
 
     # Create connection manager
@@ -38,7 +36,6 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         # Shutdown
-
         logger.info("Shutting down application...")
 
         # Close connection manager

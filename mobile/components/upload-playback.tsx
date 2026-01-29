@@ -48,6 +48,7 @@ export function UploadPlayback({
       className="relative overflow-hidden rounded-md border border-border bg-black"
       style={{ width: '100%', aspectRatio: playbackAspectRatio }}
       onLayout={handlePlaybackLayout}>
+      {/* Video playback */}
       {selectedVideoUri ? (
         <VideoView
           player={player}
@@ -56,6 +57,8 @@ export function UploadPlayback({
           nativeControls
         />
       ) : null}
+
+      {/* Overlays */}
       {canRenderOverlay ? (
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
           {overlayLandmarks && Array.isArray(overlayLandmarks) ? (

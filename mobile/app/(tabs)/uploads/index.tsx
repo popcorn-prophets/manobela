@@ -69,7 +69,6 @@ export default function UploadsScreen() {
   }, [isUploading, isProcessing, result]);
 
   // Get current metrics from active playback frame
-  // Fallback to first frame's metrics if no active frame is available yet
   const currentMetrics = useMemo(() => {
     if (activeFrame?.metrics) {
       return activeFrame.metrics as unknown as MetricsOutput;

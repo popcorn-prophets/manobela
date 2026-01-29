@@ -64,8 +64,6 @@ const BACKEND_UNAVAILABLE_PATTERNS = [
   'broken pipe',
 ];
 
-//  ---------------------------
-
 const matchesPattern = (message: string, patterns: string[]) =>
   patterns.some((pattern) => message.includes(pattern));
 

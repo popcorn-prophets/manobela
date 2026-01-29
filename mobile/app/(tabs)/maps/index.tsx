@@ -226,9 +226,7 @@ export default function MapsScreen() {
     }
   }, [routeError]);
 
-  // Reset map when screen gains focus to handle native map lifecycle issues
-  // When navigating away and back, the native map view gets detached/reattached
-  // but doesn't properly reinitialize, causing "Map not ready" errors
+  // Reset map when screen gains focus
   useFocusEffect(
     useCallback(() => {
       // Force OSMView to remount by changing its key
