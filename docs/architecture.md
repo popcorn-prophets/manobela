@@ -2,16 +2,17 @@
 
 ## System overview
 
-Manobela is a driver monitoring system with three primary components:
+Manobela is a driver monitoring system with two primary components:
 
 - Backend: FastAPI service that handles WebRTC signaling and video processing.
 - Mobile app: Expo React Native app that captures camera video and displays results.
-- Website: Next.js marketing and download site.
 
 ```mermaid
 graph LR
     A[Mobile App<br/>Expo React Native] <-->|WebRTC| B[Backend<br/>FastAPI]
 ```
+
+Note: the Website is just Next.js marketing and download site.
 
 ## High-level flow
 
@@ -28,5 +29,5 @@ sequenceDiagram
     M->>B: WebRTC video stream
     B->>B: Process frames<br/>(face detection, objects)
     B->>M: Data channel<br/>(metrics, alerts)
-    M->>M: Render overlays
+    M->>M: Render
 ```
