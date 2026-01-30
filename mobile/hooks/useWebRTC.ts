@@ -403,11 +403,13 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
     }
   }, [
     stream,
+    url,
     initPeerConnection,
     initTransport,
     initDataChannel,
     sendSignalingMessage,
     setErrorState,
+    settings.apiBaseUrl,
   ]);
 
   /**
@@ -468,6 +470,16 @@ export const useWebRTC = ({ url, stream }: UseWebRTCProps): UseWebRTCReturn => {
 
     return () => unsubscribe();
   }, [setErrorState]);
+
+  // Clean up existing connection if URL changes to ensure fresh connection with new URL
+  useEffect(() => {
+    const hasActiveTransport =
+      !!transportRef.current || !!pcRef.current || !!dataChannelRef.current;
+    if (!hasActiveTransport) return;
+
+    console.log('URL changed, cleaning up existing connection');
+    cleanup();
+  }, [url, cleanup]);
 
   return {
     transportStatus,
