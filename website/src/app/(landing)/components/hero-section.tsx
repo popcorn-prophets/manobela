@@ -61,10 +61,10 @@ export function HeroSection() {
         </div>
 
         {/* Hero Image/Visual */}
-        <div className="mx-auto mt-20 max-w-6xl">
+        <div className="mx-auto mt-20 max-w-4xl">
           <div className="relative group">
             {/* Top background glow effect - positioned above the image */}
-            <div className="absolute top-2 lg:-top-8 left-1/2 transform -translate-x-1/2 w-[90%] mx-auto h-24 lg:h-80 bg-primary/50 rounded-full blur-3xl"></div>
+            <div className="absolute top-2 lg:-top-6 left-1/2 transform -translate-x-1/2 w-[85%] mx-auto h-20 lg:h-64 bg-primary/50 rounded-full blur-3xl"></div>
 
             <div className="relative rounded-xl border bg-card shadow-2xl">
               {/* Light mode dashboard image */}
