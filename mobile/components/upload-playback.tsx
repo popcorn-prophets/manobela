@@ -17,6 +17,8 @@ interface UploadPlaybackProps {
   showOverlays: boolean;
   onToggleOverlays: (show: boolean) => void;
   faceMissing?: boolean;
+  videoWidth: number;
+  videoHeight: number;
 }
 
 export function UploadPlayback({
@@ -31,6 +33,8 @@ export function UploadPlayback({
   showOverlays,
   onToggleOverlays,
   faceMissing = false,
+  videoWidth,
+  videoHeight,
 }: UploadPlaybackProps) {
   return (
     <View
@@ -53,8 +57,8 @@ export function UploadPlayback({
           {overlayLandmarks && Array.isArray(overlayLandmarks) ? (
             <FacialLandmarkOverlay
               landmarks={overlayLandmarks}
-              videoWidth={1}
-              videoHeight={1}
+              videoWidth={videoWidth}
+              videoHeight={videoHeight}
               viewWidth={playbackView.width}
               viewHeight={playbackView.height}
               mirror={false}
@@ -63,8 +67,8 @@ export function UploadPlayback({
           {overlayDetections && Array.isArray(overlayDetections) ? (
             <ObjectDetectionOverlay
               detections={overlayDetections}
-              videoWidth={1}
-              videoHeight={1}
+              videoWidth={videoWidth}
+              videoHeight={videoHeight}
               viewWidth={playbackView.width}
               viewHeight={playbackView.height}
               mirror={false}

@@ -49,6 +49,8 @@ export default function UploadsScreen() {
     overlayDetections,
     canRenderOverlay,
     activeFrame,
+    videoWidth,
+    videoHeight,
   } = useUploadPlayback({
     result,
     selectedVideoUri: selectedVideo?.uri,
@@ -97,6 +99,8 @@ export default function UploadsScreen() {
               faceMissing={
                 (currentMetrics as unknown as { face_missing?: boolean })?.face_missing ?? false
               }
+              videoWidth={videoWidth}
+              videoHeight={videoHeight}
             />
 
             <MetricsDisplay sessionState={sessionState} metricsOutput={currentMetrics} />

@@ -1,8 +1,46 @@
 # WebRTC signaling
 
-## WebSocket endpoint
+## Basic flow
 
-- ws://<host>:8000/ws/driver-monitoring
+1. Client opens a WebSocket connection to the backend.
+2. Backend responds with `welcome` (client_id) and initial ICE server info.
+3. Backend requests STUN/TURN credentials from TURN and receives config.
+4. Client creates RTCPeerConnection, adds camera track and data channel.
+5. Client sends SDP `offer` to backend.
+6. Backend creates RTCPeerConnection and replies with SDP `answer`.
+7. Client and backend exchange `ice-candidate` messages.
+8. WebRTC connection is established:
+   - Client streams encrypted video to backend.
+   - Backend sends inference data over the data channel.
+
+```mermaid
+---
+config:
+  theme: dark
+---
+sequenceDiagram
+    participant M as Mobile
+    participant B as Backend
+    participant T as TURN
+
+    Note over M,B: Signaling
+    M->>B: WS connect
+    B->>M: WELCOME + ICE
+    B->>T: Creds
+    T->>B: STUN/TURN
+
+    Note over M,B: SDP / ICE
+    M->>M: Setup PC + tracks + DC
+    M->>B: OFFER
+    B->>B: Setup PC
+    B->>M: ANSWER
+    M->>B: ICE
+    B->>M: ICE
+
+    Note over M,B: Connected
+    M->>B: Video
+    B->>M: Inference
+```
 
 ## Signaling message types
 
@@ -12,14 +50,6 @@
 - ice-candidate: ICE candidate message.
 - error: error response from server.
 
-## Basic flow
-
-1. Client opens WebSocket.
-2. Server sends welcome with client_id.
-3. Client sends offer.
-4. Server sends answer.
-5. Both sides exchange ice-candidate messages.
-
 ## Data channel messages
 
 The server expects JSON messages over the data channel with the following types:
@@ -28,7 +58,3 @@ The server expects JSON messages over the data channel with the following types:
   - action: pause or resume
 - head_pose_recalibrate
   - requests head pose baseline reset
-
-## Server output
-
-Inference results are sent as JSON over the data channel. The format matches the InferenceData model used by the backend.

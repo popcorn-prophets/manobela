@@ -14,14 +14,15 @@ Setup guides:
 
 Other docs:
 
-- [API reference](backend/api.md)
 - [Architecture](architecture.md)
-- [Configuration](configuration.md)
-- [Deployment](deployment.md)
+- [WebRTC](webrtc.md)
 - [Metrics](metrics.md)
 - [Models](models.md)
-- [Mobile settings](mobile/settings.md)
+- [Video Uploads](video-uploads.md)
+- [Logging Insights](logging-insights.md)
+- [Maps Integration](maps-integration.md)
+- [Settings](mobile/settings.md)
 - [Self-hosting](self-hosting.md)
 - [Troubleshooting](troubleshooting.md)
-- [Video processing](backend/video-processing.md)
-- [WebRTC signaling](backend/webrtc.md)
+- [Configuration](configuration.md)
+- [Deployment](deployment.md)

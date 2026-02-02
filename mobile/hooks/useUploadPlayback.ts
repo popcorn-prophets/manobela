@@ -32,6 +32,8 @@ type UseUploadPlaybackResult = {
   overlayDetections: ObjectDetection[] | null;
   canRenderOverlay: boolean;
   hasOverlayData: boolean;
+  videoWidth: number;
+  videoHeight: number;
 };
 
 const DEFAULT_HOLD_MS = 450;
@@ -169,6 +171,9 @@ export const useUploadPlayback = ({
       ? Math.round(result.video_metadata.duration_sec * 1000)
       : null);
 
+  const videoWidth = result?.video_metadata?.resolution?.width ?? 1;
+  const videoHeight = result?.video_metadata?.resolution?.height ?? 1;
+
   return {
     activeFrame,
     playbackAspectRatio,
@@ -180,5 +185,7 @@ export const useUploadPlayback = ({
     overlayDetections,
     canRenderOverlay,
     hasOverlayData,
+    videoWidth,
+    videoHeight,
   };
 };
