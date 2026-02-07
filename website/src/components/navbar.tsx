@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, Github, LayoutDashboard, X, Moon, Sun, DownloadIcon } from 'lucide-react';
+import { Menu, Github, LayoutDashboard, X, Moon, Sun, DownloadIcon, Coffee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -18,7 +18,10 @@ import { useTheme } from '@/hooks/use-theme';
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const githubUrl =
-  process.env.EXPO_PUBLIC_GITHUB_BASE || 'https://github.com/popcorn-prophets/manobela';
+  process.env.NEXT_PUBLIC_GITHUB_BASE || 'https://github.com/popcorn-prophets/manobela';
+
+const buymeacoffeeUrl =
+  process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL || 'https://www.buymeacoffee.com/popcornprophets';
 
 const navigationItems = [
   { name: 'Home', href: '/#hero' },
@@ -81,14 +84,23 @@ export function LandingNavbar() {
         </NavigationMenu>
 
         {/* Desktop CTA */}
-        <div className="hidden xl:flex items-center space-x-2">
+        <div className="hidden xl:flex items-center space-x-1">
           <Button asChild size="sm">
-            <div className="flex gap-1">
+            <div className="flex gap-1 mr-1">
               <DownloadIcon size={14} />
               <Link href="/download" className="text-sm">
                 Download
               </Link>
             </div>
+          </Button>
+          <Button variant="ghost" size="icon" asChild className="cursor-pointer">
+            <a
+              href={`${buymeacoffeeUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Buy Us a Coffee">
+              <Coffee className="h-5 w-5" />
+            </a>
           </Button>
           <Button variant="ghost" size="icon" asChild className="cursor-pointer">
             <a
@@ -121,14 +133,15 @@ export function LandingNavbar() {
                     <Logo size={16} />
                   </div>
                   <SheetTitle className="text-lg font-semibold">Manobela</SheetTitle>
-                  <div className="ml-auto flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                      className="cursor-pointer h-8 w-8">
-                      <Moon className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                      <Sun className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  <div className="ml-auto flex items-center gap-1">
+                    <Button variant="ghost" size="icon" asChild className="cursor-pointer">
+                      <a
+                        href={`${buymeacoffeeUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Buy Us a Coffee">
+                        <Coffee className="h-5 w-5" />
+                      </a>
                     </Button>
                     <Button variant="ghost" size="icon" asChild className="cursor-pointer h-8 w-8">
                       <a
@@ -138,6 +151,14 @@ export function LandingNavbar() {
                         aria-label="GitHub Repository">
                         <Github className="h-4 w-4" />
                       </a>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                      className="cursor-pointer h-8 w-8">
+                      <Moon className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                      <Sun className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                     </Button>
                     <Button
                       variant="ghost"

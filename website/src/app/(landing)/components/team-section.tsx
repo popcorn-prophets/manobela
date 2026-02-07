@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { CardDecorator } from '@/components/ui/card-decorator';
-import { Github, Linkedin, Globe } from 'lucide-react';
+import { Github, Linkedin, Globe, Coffee } from 'lucide-react';
 
 const team = [
   {
@@ -75,6 +75,9 @@ const team = [
   },
 ];
 
+const buymeacoffeeUrl =
+  process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL || 'https://www.buymeacoffee.com/popcornprophets';
+
 export function TeamSection() {
   return (
     <section id="team" className="py-24 sm:py-32">
@@ -84,10 +87,19 @@ export function TeamSection() {
           <Badge variant="outline" className="mb-4">
             Our Team
           </Badge>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">Meet our team</h2>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">
+            Meet Popcorn Prophets
+          </h2>
           <p className="text-lg text-muted-foreground mb-8">
             We are a small team building practical technology to improve road safety.
           </p>
+          {/* Sponsor Button */}
+          <Button size="lg" className="text-base cursor-pointer" asChild>
+            <a href={`${buymeacoffeeUrl}`} target="_blank" rel="noopener noreferrer">
+              <Coffee className="h-4 w-4" />
+              Buy us a coffee :)
+            </a>
+          </Button>
         </div>
 
         {/* Team Grid */}
