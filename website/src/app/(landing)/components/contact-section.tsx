@@ -19,7 +19,7 @@ import {
 import { Mail, MessageCircle, Github, BookOpen } from 'lucide-react';
 
 const githubUrl =
-  process.env.EXPO_PUBLIC_GITHUB_BASE || 'https://github.com/popcorn-prophets/manobela';
+  process.env.NEXT_PUBLIC_GITHUB_URL || 'https://github.com/popcorn-prophets/manobela';
 
 const contactFormSchema = z.object({
   firstName: z.string().min(2, {

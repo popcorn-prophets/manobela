@@ -18,7 +18,7 @@ import { useTheme } from '@/hooks/use-theme';
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const githubUrl =
-  process.env.NEXT_PUBLIC_GITHUB_BASE || 'https://github.com/popcorn-prophets/manobela';
+  process.env.NEXT_PUBLIC_GITHUB_URL || 'https://github.com/popcorn-prophets/manobela';
 
 const buymeacoffeeUrl =
   process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL || 'https://www.buymeacoffee.com/popcornprophets';
