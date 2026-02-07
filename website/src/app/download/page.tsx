@@ -27,36 +27,46 @@ const instructions = {
   apple: ['The Apple App Store version is planned.', 'Check back here once it becomes available.'],
 };
 
+interface ReleaseInfo {
+  appVersion: string;
+  apkUrl: string;
+  apkSize: string | null;
+}
+
 // Fetch the latest GitHub release at build/render time
-async function fetchLatestRelease() {
+async function fetchLatestRelease(): Promise<ReleaseInfo> {
   try {
     const res = await fetch(
       'https://api.github.com/repos/popcorn-prophets/manobela/releases/latest',
-      {
-        // This tells Next.js to cache the response and revalidate every hour
-        next: { revalidate: 3600 },
-      }
+      { next: { revalidate: 3600 } } // cache for 1 hour
     );
 
     if (!res.ok) throw new Error('GitHub API failed');
 
     const data = await res.json();
+    const asset = data.assets?.[0]; // first asset, adjust if needed
+    const sizeBytes = asset?.size ?? 0;
+    const sizeMb = sizeBytes ? (sizeBytes / (1024 * 1024)).toFixed(2) : null;
+
     return {
       appVersion: data.tag_name,
-      apkUrl: data.assets?.[0]?.browser_download_url,
+      apkUrl: asset?.browser_download_url,
+      apkSize: sizeMb ? `${sizeMb} MB` : null,
     };
-  } catch {
+  } catch (err) {
+    console.warn('Failed to fetch GitHub release, using fallback:', err);
     return {
       appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
       apkUrl:
         process.env.NEXT_PUBLIC_APK_URL ||
         'https://github.com/popcorn-prophets/manobela/releases/latest',
+      apkSize: null,
     };
   }
 }
 
 export default async function DownloadPage() {
-  const { appVersion, apkUrl } = await fetchLatestRelease();
+  const { appVersion, apkUrl, apkSize } = await fetchLatestRelease();
 
   const googlePlayUrl =
     process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL ||
@@ -81,12 +91,12 @@ export default async function DownloadPage() {
               <p className="text-sm text-muted-foreground">
                 Version: <span className="font-bold">{appVersion}</span>
               </p>
-
-              <div className="my-2 flex flex-col sm:flex-row items-center gap-4">
+              <div className="my-2 flex flex-col sm:flex-row items-center gap-2">
                 <Button asChild className="w-fit">
                   <a href={apkUrl} download>
                     <DownloadIcon />
-                    Download APK
+                    <span>Download APK</span>
+                    <span className="text-xs text-muted">{apkSize ? `(${apkSize})` : null}</span>
                   </a>
                 </Button>
 
@@ -115,7 +125,7 @@ export default async function DownloadPage() {
           <section className="text-center space-y-4">
             <h2 className="text-xl font-semibold">Scan to Download</h2>
             <div className="inline-block bg-white p-4 rounded-xl">
-              <QRCode value={apkUrl} size={180} />
+              <QRCode value={apkUrl || ''} size={180} />
             </div>
             <p className="text-sm text-muted-foreground">
               Scan with your phone camera to download directly.
