@@ -37,6 +37,10 @@ Manobela is a **real-time driver monitoring system** that uses computer vision t
 
 _Learn more by visiting the [website](https://manobela.vercel.app/) or the [documentation](https://github.com/popcorn-prophets/manobela/tree/master/docs)._
 
+<div align="center">
+  <img src="docs/images/preview.jpg" alt="Preview" width="360" style="border-radius:20px;" />
+</div>
+
 ### Built With
 
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
