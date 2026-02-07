@@ -11,7 +11,7 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative overflow-hidden bg-gradient-to-b from-background to-background/80 pt-16 sm:pt-20 pb-16">
+      className="relative overflow-hidden bg-gradient-to-b from-background to-background/80 pt-12 sm:pt-16 pb-16">
       {/* Background Pattern */}
       <div className="absolute inset-0">
         {/* Dot pattern overlay using reusable component */}
@@ -38,7 +38,7 @@ export function HeroSection() {
           </div>
 
           {/* Main Headline */}
-          <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             <span className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               Prevent Accidents
             </span>
@@ -47,7 +47,7 @@ export function HeroSection() {
           </h1>
 
           {/* Subheading */}
-          <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl">
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">
             Manobela is a real-time driver monitoring system that uses computer vision to detect
             unsafe behaviors using only a smartphone.
           </p>
@@ -70,7 +70,7 @@ export function HeroSection() {
         </div>
 
         {/* Hero Image/Visual */}
-        <div className="mx-auto mt-16 max-w-2xl">
+        <div className="mx-auto mt-8 max-w-2xl">
           <div className="relative group">
             {/* Top background glow effect - positioned above the image */}
             <div className="absolute top-1 lg:-top-4 left-1/2 transform -translate-x-1/2 w-[75%] mx-auto h-16 lg:h-44 bg-primary/50 rounded-full blur-3xl"></div>
