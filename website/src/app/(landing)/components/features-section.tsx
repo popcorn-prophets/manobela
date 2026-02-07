@@ -1,7 +1,6 @@
 'use client';
 
 import { Eye, Zap, Smartphone, ShieldCheck, BarChart3, Map, Upload, Sliders } from 'lucide-react';
-import { Image3D } from '@/components/image-3d';
 import Image from 'next/image';
 
 const mainFeatures = [

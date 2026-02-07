@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, Github, LayoutDashboard, X, Moon, Sun, DownloadIcon, Coffee } from 'lucide-react';
+import { Menu, Github, X, Moon, Sun, DownloadIcon, Coffee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -51,7 +51,7 @@ export function LandingNavbar() {
   const { setTheme, theme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-2">
@@ -86,12 +86,10 @@ export function LandingNavbar() {
         {/* Desktop CTA */}
         <div className="hidden xl:flex items-center space-x-1">
           <Button asChild size="sm">
-            <div className="flex gap-1 mr-1">
+            <Link href="/download" className="flex gap-1 mr-1 text-sm">
               <DownloadIcon size={14} />
-              <Link href="/download" className="text-sm">
-                Download
-              </Link>
-            </div>
+              <span>Download</span>
+            </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild className="cursor-pointer">
             <a
@@ -124,7 +122,7 @@ export function LandingNavbar() {
           </SheetTrigger>
           <SheetContent
             side="right"
-            className="w-full sm:w-[400px] p-0 gap-0 [&>button]:hidden overflow-hidden flex flex-col">
+            className="w-full sm:w-100 p-0 gap-0 [&>button]:hidden overflow-hidden flex flex-col">
             <div className="flex flex-col h-full">
               {/* Header */}
               <SheetHeader className="space-y-0 p-4 pb-2 border-b">

@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: 'A driver monitoring system in your phone.',
 };
 
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} antialiased`}>
@@ -19,8 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SidebarConfigProvider>{children}</SidebarConfigProvider>
         </ThemeProvider>
 
-        {/* Google Analytics (GA4) */}
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID ?? ''} />
+        {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>
   );
