@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Generated SEO files (next-sitemap postbuild)
+robots.txt
+sitemap.xml
+sitemap-*.xml
+.next/cache/next-sitemap
