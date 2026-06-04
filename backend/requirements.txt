@@ -1571,9 +1571,9 @@ sounddevice==0.5.3 \
     --hash=sha256:ea7738baa0a9f9fef7390f649e41c9f2c8ada776180e56c2ffd217133c92a806 \
     --hash=sha256:f55ad20082efc2bdec06928e974fbcae07bc6c405409ae1334cefe7d377eb687
     # via mediapipe
-starlette==0.50.0 \
-    --hash=sha256:9e5391843ec9b6e472eed1365a78c8098cfceb7a74bfd4d6b1c0c0095efb3bca \
-    --hash=sha256:a2a17b22203254bcbc2e1f926d2d55f3f9497f769416b3190768befe598fa3ca
+starlette==1.0.1 \
+    --hash=sha256:512399c5f1de7fac99c88572212ded9ddeddef2fb32afa82d724000e88b38f4f \
+    --hash=sha256:7c0e69b2ee1c848bd54669d908500117a3ee13de603a21427e5c6fc1adf98dcd
     # via fastapi
 sympy==1.14.0 \
     --hash=sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517 \
