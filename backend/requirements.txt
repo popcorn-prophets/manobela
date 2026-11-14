@@ -383,9 +383,9 @@ brotlicffi==1.2.0.0 ; platform_python_implementation != 'CPython' \
     --hash=sha256:fa102a60e50ddbd08de86a63431a722ea216d9bc903b000bf544149cc9b823dc \
     --hash=sha256:fb4eb5830026b79a93bf503ad32b2c5257315e9ffc49e76b2715cffd07c8e3db
     # via aiohttp
-certifi==2026.1.4 \
-    --hash=sha256:9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c \
-    --hash=sha256:ac726dd470482006e014ad384921ed6438c457018f4b3d204aea4281258b2120
+certifi==2026.10.19 \
+    --hash=sha256:035c1e85572b141bf1c3a3eff0e33a8eb74917522f2559075ff8d2fea780a1ae \
+    --hash=sha256:42d35340cc5b9ba78e818ddbff0c5b1c2b779de448a340fd1b989f5fa8670e1b
     # via
     #   httpcore
     #   httpx
